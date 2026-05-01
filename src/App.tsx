@@ -14,6 +14,7 @@ import Services from "./pages/Services";
 import Automations from "./pages/Automations";
 import Insights from "./pages/Insights";
 import Sidebar from "./components/Sidebar";
+import FloatingAgent from "./components/FloatingAgent";
 
 export type Page =
   | "agent" | "dashboard" | "insights"
@@ -193,8 +194,9 @@ export default function App() {
                 style={{ background: 'radial-gradient(circle, hsl(30,100%,60%), transparent 70%)' }} />
             </div>
           )}
-          <div className={`relative z-10 ${isAgentPage ? "h-full" : ""}`}>{renderPage()}</div>
+          <div className="relative z-10">{renderPage()}</div>
         </main>
+        {!isAgentPage && <FloatingAgent campaigns={campaigns} feeds={feeds} />}
       </div>
     </TooltipProvider>
   );
