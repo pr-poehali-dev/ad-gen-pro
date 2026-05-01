@@ -1,6 +1,8 @@
 import { useState } from "react";
 import Icon from "@/components/ui/icon";
 
+const GENERATE_ADS_URL = "https://functions.poehali.dev/d58c6f7e-cbc9-48cc-95b4-6bdcacfbc57c";
+
 const templates = [
   { id: "search", label: "Поисковые", icon: "Search" },
   { id: "banner", label: "Баннеры", icon: "Image" },
@@ -8,41 +10,45 @@ const templates = [
   { id: "smart", label: "Смарт-баннеры", icon: "Sparkles" },
 ];
 
-const generated = [
-  {
-    title: "Зимние куртки — скидки до 40%",
-    desc: "Тёплые куртки для суровой зимы. Выбирайте из 500+ моделей. Быстрая доставка. Примерка дома!",
-    ctr: "3.4%",
-    score: 92,
-  },
-  {
-    title: "Куртки от 2 490 ₽ — акция",
-    desc: "Огромный выбор мужских и женских курток. Закажите онлайн и получите бесплатную доставку уже завтра.",
-    ctr: "2.8%",
-    score: 87,
-  },
-  {
-    title: "Куртка зима — купить выгодно",
-    desc: "Сравните цены, читайте отзывы. Более 200 брендов. Возврат в течение 30 дней без вопросов.",
-    ctr: "2.1%",
-    score: 78,
-  },
-];
+type AdResult = {
+  title: string;
+  description: string;
+  predicted_ctr: number;
+  quality_score: number;
+  keywords: string[];
+};
 
 export default function AiGenerator() {
   const [activeTemplate, setActiveTemplate] = useState("search");
   const [feedSelected, setFeedSelected] = useState("Каталог товаров зима 2025");
   const [tone, setTone] = useState("Продажи");
+  const [count, setCount] = useState(3);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [showResults, setShowResults] = useState(true);
+  const [results, setResults] = useState<AdResult[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     setIsGenerating(true);
-    setShowResults(false);
-    setTimeout(() => {
+    setError(null);
+    try {
+      const resp = await fetch(GENERATE_ADS_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          feed_name: feedSelected,
+          ad_type: activeTemplate,
+          tone,
+          count,
+        }),
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.error || "Ошибка генерации");
+      setResults(data.ads || []);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Ошибка генерации");
+    } finally {
       setIsGenerating(false);
-      setShowResults(true);
-    }, 2000);
+    }
   };
 
   return (
@@ -136,8 +142,13 @@ export default function AiGenerator() {
           <div className="glass rounded-2xl p-5">
             <h3 className="font-heading font-bold text-sm text-foreground mb-3">Количество вариантов</h3>
             <div className="flex items-center gap-3">
-              {[3, 5, 10, 20].map((n) => (
-                <button key={n} className="flex-1 py-2 rounded-xl glass text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+              {[3, 5, 10].map((n) => (
+                <button
+                  key={n}
+                  onClick={() => setCount(n)}
+                  className={`flex-1 py-2 rounded-xl text-sm font-medium transition-colors ${count === n ? "text-background" : "glass text-muted-foreground hover:text-foreground"}`}
+                  style={count === n ? { background: 'linear-gradient(135deg, hsl(185,100%,55%), hsl(260,80%,65%))' } : {}}
+                >
                   {n}
                 </button>
               ))}
@@ -167,7 +178,21 @@ export default function AiGenerator() {
 
         {/* Results */}
         <div className="col-span-3">
-          {showResults ? (
+          {error && (
+            <div className="glass rounded-2xl p-5 border border-destructive/30 text-destructive text-sm mb-4">
+              {error}
+            </div>
+          )}
+          {isGenerating ? (
+            <div className="flex flex-col items-center justify-center h-full min-h-[400px] glass rounded-2xl">
+              <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4 animate-pulse-slow"
+                style={{ background: 'linear-gradient(135deg, hsl(185,100%,55%,0.2), hsl(260,80%,65%,0.2))' }}>
+                <Icon name="Sparkles" size={32} className="text-neon-cyan animate-spin" />
+              </div>
+              <p className="font-heading font-bold text-foreground mb-1">Генерирую объявления...</p>
+              <p className="text-sm text-muted-foreground">ИИ анализирует ваш каталог товаров</p>
+            </div>
+          ) : results.length > 0 ? (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="font-heading font-bold text-foreground">Сгенерированные варианты</h3>
@@ -176,7 +201,7 @@ export default function AiGenerator() {
                   Экспортировать все
                 </button>
               </div>
-              {generated.map((ad, i) => (
+              {results.map((ad, i) => (
                 <div key={i} className="glass glass-hover rounded-2xl p-5 group">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex-1">
@@ -186,24 +211,24 @@ export default function AiGenerator() {
                     <div className="flex items-center gap-2 ml-4">
                       <div className="text-right">
                         <div className="text-[10px] text-muted-foreground">Прогноз CTR</div>
-                        <div className="text-sm font-bold metric-up">{ad.ctr}</div>
+                        <div className="text-sm font-bold metric-up">{ad.predicted_ctr}%</div>
                       </div>
                       <div
                         className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold text-background"
                         style={{
-                          background: ad.score >= 90
+                          background: ad.quality_score >= 90
                             ? 'linear-gradient(135deg, hsl(145,70%,50%), hsl(165,70%,45%))'
-                            : ad.score >= 80
+                            : ad.quality_score >= 80
                             ? 'linear-gradient(135deg, hsl(185,100%,55%), hsl(200,100%,50%))'
                             : 'linear-gradient(135deg, hsl(30,100%,60%), hsl(15,100%,60%))'
                         }}
                       >
-                        {ad.score}
+                        {ad.quality_score}
                       </div>
                     </div>
                   </div>
                   <div className="text-xs text-muted-foreground mb-1 font-medium">Описание</div>
-                  <p className="text-sm text-foreground/80 mb-4">{ad.desc}</p>
+                  <p className="text-sm text-foreground/80 mb-4">{ad.description}</p>
                   <div className="flex items-center gap-2">
                     <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-background transition-all hover:scale-105"
                       style={{ background: 'linear-gradient(135deg, hsl(185,100%,55%), hsl(200,100%,50%))' }}>
@@ -227,12 +252,12 @@ export default function AiGenerator() {
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center h-full min-h-[400px] glass rounded-2xl">
-              <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4 animate-pulse-slow"
-                style={{ background: 'linear-gradient(135deg, hsl(185,100%,55%,0.2), hsl(260,80%,65%,0.2))' }}>
-                <Icon name="Sparkles" size={32} className="text-neon-cyan animate-spin" />
+              <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4"
+                style={{ background: 'linear-gradient(135deg, hsl(185,100%,55%,0.15), hsl(260,80%,65%,0.15))' }}>
+                <Icon name="Sparkles" size={32} className="text-neon-cyan" />
               </div>
-              <p className="font-heading font-bold text-foreground mb-1">Генерирую объявления...</p>
-              <p className="text-sm text-muted-foreground">ИИ анализирует ваш каталог товаров</p>
+              <p className="font-heading font-bold text-foreground mb-1">Выберите параметры и нажмите «Сгенерировать»</p>
+              <p className="text-sm text-muted-foreground">ИИ создаст объявления на основе вашего фида</p>
             </div>
           )}
         </div>
