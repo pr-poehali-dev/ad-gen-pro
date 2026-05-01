@@ -1,0 +1,25 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Generate ads",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "feed_name": "Каталог зимней одежды",
+        "ad_type": "search",
+        "tone": "Продажи",
+        "count": 2,
+        "products": ["Куртка зимняя мужская", "Пальто женское", "Шапка вязаная"]
+      },
+      "expectedStatus": 200,
+      "expectedBody": {"ads": []},
+      "bodyMatcher": "partial"
+    }
+  ]
+}
