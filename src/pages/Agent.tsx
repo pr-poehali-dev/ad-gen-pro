@@ -118,11 +118,11 @@ export default function Agent({ campaigns, feeds, onNavigate }: AgentProps) {
     <div className="relative">
       {/* Animated background */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
-        <div className="absolute top-[-10%] right-[-5%] w-[700px] h-[700px] rounded-full opacity-[0.12] animate-pulse-slow"
+        <div className="absolute top-[-10%] right-[-5%] w-[700px] h-[700px] rounded-full opacity-[0.25] animate-pulse-slow"
           style={{ background: 'radial-gradient(circle, hsl(185,100%,55%), transparent 70%)' }} />
-        <div className="absolute bottom-[-5%] left-[-10%] w-[600px] h-[600px] rounded-full opacity-[0.10] animate-pulse-slow"
+        <div className="absolute bottom-[-5%] left-[-10%] w-[600px] h-[600px] rounded-full opacity-[0.22] animate-pulse-slow"
           style={{ background: 'radial-gradient(circle, hsl(260,80%,65%), transparent 70%)', animationDelay: '1s' }} />
-        <div className="absolute top-[40%] left-[40%] w-[400px] h-[400px] rounded-full opacity-[0.08]"
+        <div className="absolute top-[40%] left-[40%] w-[400px] h-[400px] rounded-full opacity-[0.18]"
           style={{ background: 'radial-gradient(circle, hsl(320,80%,65%), transparent 70%)' }} />
       </div>
 
@@ -188,8 +188,8 @@ export default function Agent({ campaigns, feeds, onNavigate }: AgentProps) {
                 animation: 'spin 12s linear infinite',
               }}>
               <div className="w-[90%] h-[90%] rounded-full flex items-center justify-center"
-                style={{ background: 'hsl(230, 25%, 5%)' }}>
-                <Icon name="Brain" size={64} className="text-neon-cyan" />
+                style={{ background: 'hsl(0, 0%, 100%)' }}>
+                <Icon name="Brain" size={64} style={{ color: 'hsl(185, 90%, 42%)' }} />
               </div>
             </div>
             <div className="absolute -top-2 -right-2 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest"

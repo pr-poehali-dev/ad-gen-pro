@@ -4,43 +4,43 @@
 
 @layer base {
   :root {
-    --background: 230 25% 6%;
-    --foreground: 210 40% 95%;
+    --background: 220 30% 98%;
+    --foreground: 230 30% 12%;
 
-    --card: 230 20% 9%;
-    --card-foreground: 210 40% 95%;
+    --card: 0 0% 100%;
+    --card-foreground: 230 30% 12%;
 
-    --popover: 230 20% 9%;
-    --popover-foreground: 210 40% 95%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 230 30% 12%;
 
-    --primary: 185 100% 55%;
-    --primary-foreground: 230 25% 6%;
+    --primary: 185 90% 42%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 260 60% 55%;
-    --secondary-foreground: 210 40% 95%;
+    --secondary: 260 70% 60%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 230 20% 14%;
-    --muted-foreground: 215 20% 55%;
+    --muted: 220 20% 94%;
+    --muted-foreground: 230 15% 45%;
 
-    --accent: 30 100% 60%;
-    --accent-foreground: 230 25% 6%;
+    --accent: 30 100% 55%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 75% 55%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 230 20% 16%;
-    --input: 230 20% 14%;
-    --ring: 185 100% 55%;
+    --border: 220 20% 88%;
+    --input: 220 20% 92%;
+    --ring: 185 90% 42%;
 
     --radius: 0.75rem;
 
-    --sidebar-background: 230 25% 5%;
-    --sidebar-foreground: 215 20% 70%;
+    --sidebar-background: 230 30% 12%;
+    --sidebar-foreground: 220 20% 85%;
     --sidebar-primary: 185 100% 55%;
-    --sidebar-primary-foreground: 230 25% 6%;
-    --sidebar-accent: 230 20% 11%;
-    --sidebar-accent-foreground: 210 40% 95%;
-    --sidebar-border: 230 20% 12%;
+    --sidebar-primary-foreground: 230 30% 12%;
+    --sidebar-accent: 230 25% 18%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 230 25% 20%;
     --sidebar-ring: 185 100% 55%;
 
     /* Brand colors */
@@ -91,17 +91,19 @@
 
   /* Glass card */
   .glass {
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(15, 25, 60, 0.08);
+    box-shadow: 0 1px 3px rgba(15, 25, 60, 0.04);
   }
 
   .glass-hover {
     transition: all 0.3s ease;
   }
   .glass-hover:hover {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 1);
+    border-color: rgba(15, 25, 60, 0.15);
+    box-shadow: 0 8px 24px rgba(15, 25, 60, 0.08);
     transform: translateY(-2px);
   }
 
@@ -216,10 +218,10 @@
     height: 6px;
   }
   ::-webkit-scrollbar-track {
-    background: hsl(230, 25%, 6%);
+    background: hsl(220, 20%, 96%);
   }
   ::-webkit-scrollbar-thumb {
-    background: hsl(230, 20%, 20%);
+    background: hsl(220, 15%, 75%);
     border-radius: 3px;
   }
   ::-webkit-scrollbar-thumb:hover {
@@ -228,21 +230,21 @@
 
   /* Status badge */
   .status-active {
-    background: rgba(50, 220, 140, 0.15);
-    color: hsl(145, 70%, 55%);
-    border: 1px solid rgba(50, 220, 140, 0.3);
+    background: rgba(34, 170, 100, 0.12);
+    color: hsl(145, 65%, 35%);
+    border: 1px solid rgba(34, 170, 100, 0.3);
   }
 
   .status-paused {
-    background: rgba(255, 160, 50, 0.15);
-    color: hsl(30, 100%, 65%);
-    border: 1px solid rgba(255, 160, 50, 0.3);
+    background: rgba(220, 130, 30, 0.12);
+    color: hsl(30, 90%, 40%);
+    border: 1px solid rgba(220, 130, 30, 0.3);
   }
 
   .status-draft {
-    background: rgba(140, 100, 240, 0.15);
-    color: hsl(260, 80%, 70%);
-    border: 1px solid rgba(140, 100, 240, 0.3);
+    background: rgba(120, 90, 220, 0.12);
+    color: hsl(260, 60%, 45%);
+    border: 1px solid rgba(120, 90, 220, 0.3);
   }
 
   /* Gradient border */
@@ -267,9 +269,9 @@
 
   /* Metric card highlight */
   .metric-up {
-    color: hsl(145, 70%, 55%);
+    color: hsl(145, 65%, 38%);
   }
   .metric-down {
-    color: hsl(0, 75%, 60%);
+    color: hsl(0, 75%, 50%);
   }
 }

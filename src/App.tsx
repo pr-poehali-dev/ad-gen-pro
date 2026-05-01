@@ -186,11 +186,11 @@ export default function App() {
         <main className="flex-1 overflow-y-auto relative">
           {!isAgentPage && (
             <div className="fixed inset-0 pointer-events-none overflow-hidden">
-              <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full opacity-[0.05]"
+              <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full opacity-[0.18]"
                 style={{ background: 'radial-gradient(circle, hsl(185,100%,55%), transparent 70%)' }} />
-              <div className="absolute bottom-[-10%] left-[20%] w-[500px] h-[500px] rounded-full opacity-[0.05]"
+              <div className="absolute bottom-[-10%] left-[20%] w-[500px] h-[500px] rounded-full opacity-[0.15]"
                 style={{ background: 'radial-gradient(circle, hsl(260,80%,65%), transparent 70%)' }} />
-              <div className="absolute top-[40%] left-[-5%] w-[400px] h-[400px] rounded-full opacity-[0.03]"
+              <div className="absolute top-[40%] left-[-5%] w-[400px] h-[400px] rounded-full opacity-[0.12]"
                 style={{ background: 'radial-gradient(circle, hsl(30,100%,60%), transparent 70%)' }} />
             </div>
           )}
