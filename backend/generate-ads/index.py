@@ -1,10 +1,9 @@
 """
-Генерация рекламных объявлений через OpenAI GPT-4o на основе фида и параметров.
+Генерация рекламных объявлений через polza.ai (GPT-4o) на основе фида и параметров.
 """
 import json
 import os
 import urllib.request
-import urllib.error
 
 
 def handler(event: dict, context) -> dict:
@@ -21,9 +20,9 @@ def handler(event: dict, context) -> dict:
     if event.get('httpMethod') != 'POST':
         return {'statusCode': 405, 'headers': cors_headers, 'body': json.dumps({'error': 'Method not allowed'})}
 
-    api_key = os.environ.get('OPENAI_API_KEY', '')
+    api_key = os.environ.get('POLZA_API_KEY', '')
     if not api_key:
-        return {'statusCode': 500, 'headers': cors_headers, 'body': json.dumps({'error': 'OPENAI_API_KEY не настроен'})}
+        return {'statusCode': 500, 'headers': cors_headers, 'body': json.dumps({'error': 'POLZA_API_KEY не настроен'})}
 
     body = json.loads(event.get('body') or '{}')
     feed_name = body.get('feed_name', 'каталог товаров')
@@ -64,11 +63,10 @@ def handler(event: dict, context) -> dict:
 - quality_score: оценка качества от 0 до 100 (число)
 - keywords: массив из 3-5 ключевых слов для этого объявления
 
-Верни ТОЛЬКО валидный JSON массив объектов, без пояснений и markdown-блоков.
-"""
+Верни ТОЛЬКО валидный JSON массив объектов, без пояснений и markdown-блоков."""
 
     payload = json.dumps({
-        'model': 'gpt-4o',
+        'model': 'openai/gpt-4o',
         'messages': [
             {'role': 'system', 'content': 'Ты эксперт по контекстной рекламе. Отвечай только валидным JSON без markdown.'},
             {'role': 'user', 'content': prompt}
@@ -78,7 +76,7 @@ def handler(event: dict, context) -> dict:
     }).encode('utf-8')
 
     req = urllib.request.Request(
-        'https://api.openai.com/v1/chat/completions',
+        'https://polza.ai/api/v1/chat/completions',
         data=payload,
         headers={
             'Content-Type': 'application/json',
@@ -91,7 +89,6 @@ def handler(event: dict, context) -> dict:
         result = json.loads(resp.read().decode('utf-8'))
 
     content = result['choices'][0]['message']['content'].strip()
-    # Убираем markdown если вдруг есть
     if content.startswith('```'):
         lines = content.split('\n')
         content = '\n'.join(lines[1:-1])
@@ -101,5 +98,5 @@ def handler(event: dict, context) -> dict:
     return {
         'statusCode': 200,
         'headers': cors_headers,
-        'body': json.dumps({'ads': ads, 'model': 'gpt-4o', 'count': len(ads)})
+        'body': json.dumps({'ads': ads, 'model': 'openai/gpt-4o', 'count': len(ads)})
     }
