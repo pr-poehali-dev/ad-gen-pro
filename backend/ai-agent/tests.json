@@ -1,0 +1,17 @@
+{
+  "tests": [
+    { "name": "OPTIONS preflight", "method": "OPTIONS", "path": "/", "expectedStatus": 200 },
+    {
+      "name": "Chat reply",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "messages": [{ "role": "user", "content": "Привет, помоги увеличить CTR в моей кампании" }],
+        "context": { "campaigns": [{ "name": "Зимняя коллекция", "platform": "yandex", "status": "active", "budget": 25000, "spent": 12400, "ctr": 3.12 }] }
+      },
+      "expectedStatus": 200,
+      "expectedBody": { "reply": "string" },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

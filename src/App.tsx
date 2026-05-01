@@ -7,9 +7,20 @@ import AiGenerator from "./pages/AiGenerator";
 import Campaigns from "./pages/Campaigns";
 import Export from "./pages/Export";
 import Settings from "./pages/Settings";
+import Calendar from "./pages/Calendar";
+import Templates from "./pages/Templates";
+import Agent from "./pages/Agent";
+import Services from "./pages/Services";
+import Automations from "./pages/Automations";
+import Insights from "./pages/Insights";
 import Sidebar from "./components/Sidebar";
 
-export type Page = "dashboard" | "feeds" | "ai" | "campaigns" | "export" | "settings";
+export type Page =
+  | "agent" | "dashboard" | "insights"
+  | "feeds" | "ai" | "templates"
+  | "campaigns" | "calendar" | "automations"
+  | "services" | "export" | "settings";
+
 export type CampaignStatus = "active" | "paused" | "draft";
 
 export interface Campaign {
@@ -67,7 +78,7 @@ const initialExportHistory: ExportRecord[] = [
 ];
 
 export default function App() {
-  const [activePage, setActivePage] = useState<Page>("dashboard");
+  const [activePage, setActivePage] = useState<Page>("agent");
   const [campaigns, setCampaigns] = useState<Campaign[]>(initialCampaigns);
   const [feeds, setFeeds] = useState<Feed[]>(initialFeeds);
   const [exportHistory, setExportHistory] = useState<ExportRecord[]>(initialExportHistory);
@@ -91,9 +102,21 @@ export default function App() {
     }]);
   };
 
-  const handleDeleteFeed = (id: number) => {
-    setFeeds(prev => prev.filter(f => f.id !== id));
+  const handleDuplicateCampaign = (id: number) => {
+    setCampaigns(prev => {
+      const original = prev.find(c => c.id === id);
+      if (!original) return prev;
+      return [...prev, {
+        ...original,
+        id: Date.now(),
+        name: `${original.name} (копия)`,
+        status: "draft",
+        spent: 0, impressions: 0, clicks: 0, ctr: 0,
+      }];
+    });
   };
+
+  const handleDeleteFeed = (id: number) => setFeeds(prev => prev.filter(f => f.id !== id));
 
   const handleRefreshFeed = (id: number) => {
     const now = new Date();
@@ -125,14 +148,26 @@ export default function App() {
 
   const renderPage = () => {
     switch (activePage) {
+      case "agent":
+        return <Agent campaigns={campaigns} feeds={feeds} onNavigate={setActivePage} />;
       case "dashboard":
         return <Dashboard campaigns={campaigns} onNavigate={setActivePage} />;
+      case "insights":
+        return <Insights campaigns={campaigns} onNavigate={setActivePage} />;
+      case "services":
+        return <Services onNavigate={setActivePage} />;
+      case "automations":
+        return <Automations />;
       case "feeds":
         return <Feeds feeds={feeds} onDelete={handleDeleteFeed} onRefresh={handleRefreshFeed} onAdd={handleAddFeed} />;
       case "ai":
         return <AiGenerator feeds={feeds} campaigns={campaigns} setCampaigns={setCampaigns} />;
+      case "templates":
+        return <Templates />;
       case "campaigns":
-        return <Campaigns campaigns={campaigns} onToggle={handleToggleCampaign} onDelete={handleDeleteCampaign} onAdd={handleAddCampaign} onNavigate={setActivePage} />;
+        return <Campaigns campaigns={campaigns} onToggle={handleToggleCampaign} onDelete={handleDeleteCampaign} onAdd={handleAddCampaign} onDuplicate={handleDuplicateCampaign} onNavigate={setActivePage} />;
+      case "calendar":
+        return <Calendar campaigns={campaigns} />;
       case "export":
         return <Export campaigns={campaigns} exportHistory={exportHistory} onExport={handleExport} />;
       case "settings":
@@ -140,21 +175,25 @@ export default function App() {
     }
   };
 
+  const isAgentPage = activePage === "agent";
+
   return (
     <TooltipProvider>
       <Toaster />
       <div className="flex h-screen bg-background overflow-hidden">
         <Sidebar activePage={activePage} onNavigate={setActivePage} campaigns={campaigns} feeds={feeds} />
         <main className="flex-1 overflow-y-auto relative">
-          <div className="fixed inset-0 pointer-events-none overflow-hidden">
-            <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full opacity-[0.05]"
-              style={{ background: 'radial-gradient(circle, hsl(185,100%,55%), transparent 70%)' }} />
-            <div className="absolute bottom-[-10%] left-[20%] w-[500px] h-[500px] rounded-full opacity-[0.05]"
-              style={{ background: 'radial-gradient(circle, hsl(260,80%,65%), transparent 70%)' }} />
-            <div className="absolute top-[40%] left-[-5%] w-[400px] h-[400px] rounded-full opacity-[0.03]"
-              style={{ background: 'radial-gradient(circle, hsl(30,100%,60%), transparent 70%)' }} />
-          </div>
-          <div className="relative z-10">{renderPage()}</div>
+          {!isAgentPage && (
+            <div className="fixed inset-0 pointer-events-none overflow-hidden">
+              <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full opacity-[0.05]"
+                style={{ background: 'radial-gradient(circle, hsl(185,100%,55%), transparent 70%)' }} />
+              <div className="absolute bottom-[-10%] left-[20%] w-[500px] h-[500px] rounded-full opacity-[0.05]"
+                style={{ background: 'radial-gradient(circle, hsl(260,80%,65%), transparent 70%)' }} />
+              <div className="absolute top-[40%] left-[-5%] w-[400px] h-[400px] rounded-full opacity-[0.03]"
+                style={{ background: 'radial-gradient(circle, hsl(30,100%,60%), transparent 70%)' }} />
+            </div>
+          )}
+          <div className={`relative z-10 ${isAgentPage ? "h-full" : ""}`}>{renderPage()}</div>
         </main>
       </div>
     </TooltipProvider>

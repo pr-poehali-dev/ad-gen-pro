@@ -1,0 +1,243 @@
+import { useState } from "react";
+import Icon from "@/components/ui/icon";
+import { Page } from "@/App";
+import { useToast } from "@/hooks/use-toast";
+
+interface ServicesProps {
+  onNavigate: (page: Page) => void;
+}
+
+interface Service {
+  id: string;
+  title: string;
+  tagline: string;
+  description: string;
+  icon: string;
+  color: string;
+  price: string;
+  features: string[];
+  popular?: boolean;
+}
+
+const services: Service[] = [
+  {
+    id: "context",
+    title: "Контекстная реклама",
+    tagline: "Яндекс Директ + Google Ads",
+    description: "Запустим кампании за 24 часа: ИИ создаст объявления, оптимизирует ставки, найдёт лучшие связки.",
+    icon: "MousePointerClick",
+    color: "hsl(185,100%,55%)",
+    price: "от 35 000 ₽/мес",
+    features: ["Аудит ниши", "ИИ-генерация 100+ объявлений", "Автооптимизация ставок", "A/B-тестирование", "Еженедельные отчёты"],
+    popular: true,
+  },
+  {
+    id: "target",
+    title: "Таргетированная реклама",
+    tagline: "VK · MyTarget · TikTok Ads",
+    description: "Точная сегментация аудитории, ретаргетинг и look-alike. Креативы под каждую площадку.",
+    icon: "Target",
+    color: "hsl(260,80%,65%)",
+    price: "от 30 000 ₽/мес",
+    features: ["Сегментация аудиторий", "Ретаргетинг", "Look-alike", "Креативы 3D / видео", "Pixel + аналитика"],
+  },
+  {
+    id: "seo",
+    title: "SEO-продвижение",
+    tagline: "Поисковая оптимизация",
+    description: "Доведём сайт до ТОП-10 за 3-6 месяцев. Семантика, контент, техничка — всё под ключ.",
+    icon: "Search",
+    color: "hsl(145,70%,50%)",
+    price: "от 50 000 ₽/мес",
+    features: ["Семантическое ядро", "Технический аудит", "Контент-план + статьи", "Линкбилдинг", "Прозрачная аналитика"],
+  },
+  {
+    id: "content",
+    title: "Контент-маркетинг",
+    tagline: "Статьи, посты, видео",
+    description: "ИИ-агент пишет тексты под бренд, дизайнеры оформляют — вы получаете готовый контент-план.",
+    icon: "PenLine",
+    color: "hsl(30,100%,60%)",
+    price: "от 25 000 ₽/мес",
+    features: ["Tone of voice", "30 единиц контента/мес", "ИИ + редактор", "Постинг по расписанию", "Аналитика охватов"],
+  },
+  {
+    id: "email",
+    title: "Email-маркетинг",
+    tagline: "Цепочки и рассылки",
+    description: "Автоворонки, welcome-цепочки, реактивация. Готовые шаблоны и интеграция с CRM.",
+    icon: "Mail",
+    color: "hsl(320,80%,65%)",
+    price: "от 18 000 ₽/мес",
+    features: ["Автоматические воронки", "Сегментация базы", "A/B-тесты темы и CTA", "Интеграция с CRM", "Heatmap писем"],
+  },
+  {
+    id: "design",
+    title: "Дизайн креативов",
+    tagline: "Баннеры, лендинги, видео",
+    description: "Дизайн-команда + AI Midjourney/DALL-E. От иконки до полного брендинга и сайта.",
+    icon: "Palette",
+    color: "hsl(15,80%,60%)",
+    price: "от 12 000 ₽/проект",
+    features: ["AI-визуалы", "Адаптивные баннеры", "Лендинги под ключ", "Анимация / motion", "Брендбук"],
+  },
+  {
+    id: "analytics",
+    title: "Сквозная аналитика",
+    tagline: "Roistat · Calltouch · GA4",
+    description: "Соберём в одну панель все источники: реклама, продажи, звонки, чаты. ROMI прозрачен.",
+    icon: "LineChart",
+    color: "hsl(200,100%,55%)",
+    price: "от 22 000 ₽/мес",
+    features: ["Подключение источников", "Дашборд под клиента", "ROMI и LTV метрики", "Воронки в разрезе каналов", "Алерты в Telegram"],
+  },
+  {
+    id: "automation",
+    title: "AI-автоматизация",
+    tagline: "Сценарии и интеграции",
+    description: "Бот-агент следит за метриками 24/7, ставит на паузу, оптимизирует, шлёт отчёты.",
+    icon: "Bot",
+    color: "hsl(280,80%,65%)",
+    price: "от 15 000 ₽/мес",
+    features: ["Автопауза при перерасходе", "Авто A/B-тесты", "Оптимизация ставок ИИ", "Алерты в Telegram/Slack", "API под ваш стек"],
+  },
+];
+
+export default function Services({ onNavigate }: ServicesProps) {
+  const { toast } = useToast();
+  const [requestedId, setRequestedId] = useState<string | null>(null);
+
+  const requestService = (s: Service) => {
+    setRequestedId(s.id);
+    toast({ title: "Заявка отправлена", description: `Менеджер свяжется по услуге «${s.title}» в течение 30 минут` });
+  };
+
+  return (
+    <div className="p-8 animate-fade-in">
+      <div className="mb-8">
+        <div className="flex items-center gap-2 text-xs text-neon-cyan mb-2 uppercase tracking-widest font-bold">
+          <Icon name="Zap" size={13} />
+          Digital-агентство полного цикла
+        </div>
+        <h1 className="font-heading text-3xl font-bold text-foreground mb-2">
+          Услуги <span style={{ background: 'linear-gradient(135deg, hsl(185,100%,55%), hsl(260,80%,65%))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>AdFlow Agency</span>
+        </h1>
+        <p className="text-muted-foreground">
+          Подключите команду маркетологов и AI-агента к своему бизнесу — вырастем в выручке вместе
+        </p>
+      </div>
+
+      {/* Process timeline */}
+      <div className="glass rounded-2xl p-5 mb-6">
+        <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">Как мы работаем</div>
+        <div className="grid grid-cols-5 gap-2">
+          {[
+            { n: "01", label: "Аудит", icon: "Search" },
+            { n: "02", label: "Стратегия", icon: "Lightbulb" },
+            { n: "03", label: "Запуск", icon: "Rocket" },
+            { n: "04", label: "Оптимизация", icon: "Settings2" },
+            { n: "05", label: "Рост", icon: "TrendingUp" },
+          ].map((step, i, arr) => (
+            <div key={i} className="flex items-center gap-2">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-bold text-background"
+                    style={{ background: 'linear-gradient(135deg, hsl(185,100%,55%), hsl(260,80%,65%))' }}>
+                    {step.n}
+                  </div>
+                  <Icon name={step.icon} size={13} className="text-neon-cyan" />
+                </div>
+                <div className="text-xs font-semibold text-foreground">{step.label}</div>
+              </div>
+              {i < arr.length - 1 && (
+                <Icon name="ChevronRight" size={14} className="text-muted-foreground/40" />
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Services grid */}
+      <div className="grid grid-cols-2 gap-4">
+        {services.map(s => {
+          const isRequested = requestedId === s.id;
+          return (
+            <div key={s.id}
+              className={`glass glass-hover rounded-2xl p-6 relative overflow-hidden ${s.popular ? "ring-1 ring-neon-cyan/40" : ""}`}>
+              {s.popular && (
+                <div className="absolute top-4 right-4 text-[9px] uppercase font-bold tracking-wider px-2 py-0.5 rounded"
+                  style={{ background: 'linear-gradient(135deg, hsl(185,100%,55%), hsl(260,80%,65%))', color: 'hsl(230,25%,5%)' }}>
+                  ⭐ Хит
+                </div>
+              )}
+
+              <div className="flex items-start gap-4 mb-4">
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
+                  style={{ background: `${s.color}20`, border: `1px solid ${s.color}40` }}>
+                  <Icon name={s.icon} size={22} style={{ color: s.color }} />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-heading font-bold text-foreground text-lg leading-tight">{s.title}</h3>
+                  <div className="text-xs text-muted-foreground mt-0.5">{s.tagline}</div>
+                </div>
+              </div>
+
+              <p className="text-sm text-foreground/80 mb-4 leading-relaxed">{s.description}</p>
+
+              <div className="space-y-1.5 mb-5">
+                {s.features.map((f, i) => (
+                  <div key={i} className="flex items-center gap-2 text-xs text-foreground/80">
+                    <Icon name="Check" size={12} style={{ color: s.color }} />
+                    {f}
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex items-center justify-between pt-4 border-t border-border/30">
+                <div>
+                  <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Стоимость</div>
+                  <div className="font-heading font-bold text-foreground">{s.price}</div>
+                </div>
+                <button
+                  onClick={() => requestService(s)}
+                  disabled={isRequested}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-background transition-all hover:scale-105 disabled:opacity-70"
+                  style={{ background: isRequested
+                    ? 'linear-gradient(135deg, hsl(145,70%,50%), hsl(165,70%,45%))'
+                    : `linear-gradient(135deg, ${s.color}, ${s.color})`
+                  }}>
+                  <Icon name={isRequested ? "Check" : "Send"} size={13} />
+                  {isRequested ? "Заявка отправлена" : "Подключить"}
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* CTA - call agent */}
+      <div className="mt-6 glass rounded-2xl p-6 relative overflow-hidden">
+        <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full opacity-20"
+          style={{ background: 'radial-gradient(circle, hsl(185,100%,55%), transparent 70%)' }} />
+        <div className="relative flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center"
+              style={{ background: 'linear-gradient(135deg, hsl(185,100%,55%), hsl(260,80%,65%))' }}>
+              <Icon name="Brain" size={28} className="text-background" />
+            </div>
+            <div>
+              <h3 className="font-heading font-bold text-foreground text-lg">Не уверены, что подходит?</h3>
+              <p className="text-sm text-muted-foreground">Спросите AI-агента — он подберёт услуги под вашу задачу за минуту</p>
+            </div>
+          </div>
+          <button onClick={() => onNavigate("agent")}
+            className="flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold text-background transition-all hover:scale-105"
+            style={{ background: 'linear-gradient(135deg, hsl(185,100%,55%), hsl(260,80%,65%))' }}>
+            <Icon name="MessageSquare" size={16} />
+            Поговорить с агентом
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
