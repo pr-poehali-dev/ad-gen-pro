@@ -1,33 +1,61 @@
 import { useState } from "react";
 import Icon from "@/components/ui/icon";
-
-const campaigns = [
-  { id: 1, name: "Зимняя коллекция 2025", platform: "yandex", status: "active", budget: 25000, spent: 12400, impressions: 398220, clicks: 12440, ctr: 3.12, ads: 48 },
-  { id: 2, name: "Смартфоны - Март", platform: "google", status: "active", budget: 18000, spent: 9800, impressions: 344770, clicks: 9790, ctr: 2.84, ads: 32 },
-  { id: 3, name: "Акция 8 марта", platform: "yandex", status: "paused", budget: 10000, spent: 7100, impressions: 369540, clicks: 7100, ctr: 1.92, ads: 20 },
-  { id: 4, name: "Бытовая техника Q1", platform: "google", status: "draft", budget: 30000, spent: 0, impressions: 0, clicks: 0, ctr: 0, ads: 0 },
-  { id: 5, name: "Новогодние скидки", platform: "yandex", status: "active", budget: 45000, spent: 21300, impressions: 531120, clicks: 21300, ctr: 4.01, ads: 90 },
-  { id: 6, name: "Весенние новинки", platform: "google", status: "draft", budget: 15000, spent: 0, impressions: 0, clicks: 0, ctr: 0, ads: 5 },
-];
+import { Campaign, Page } from "@/App";
 
 const platformIcon = { yandex: "🟡", google: "🔵" };
 const platformName = { yandex: "Яндекс Директ", google: "Google Ads" };
 
-export default function Campaigns() {
-  const [filter, setFilter] = useState("all");
+interface CampaignsProps {
+  campaigns: Campaign[];
+  onToggle: (id: number) => void;
+  onDelete: (id: number) => void;
+  onAdd: (name: string, platform: "yandex" | "google", budget: number) => void;
+  onNavigate: (page: Page) => void;
+}
 
-  const filtered = filter === "all" ? campaigns : campaigns.filter(c => c.status === filter);
+export default function Campaigns({ campaigns, onToggle, onDelete, onAdd, onNavigate }: CampaignsProps) {
+  const [filter, setFilter] = useState("all");
+  const [search, setSearch] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newPlatform, setNewPlatform] = useState<"yandex" | "google">("yandex");
+  const [newBudget, setNewBudget] = useState("");
+  const [deleteId, setDeleteId] = useState<number | null>(null);
+
+  const filtered = campaigns.filter(c => {
+    const matchFilter = filter === "all" || c.status === filter;
+    const matchSearch = c.name.toLowerCase().includes(search.toLowerCase());
+    return matchFilter && matchSearch;
+  });
+
+  const counts = {
+    all: campaigns.length,
+    active: campaigns.filter(c => c.status === "active").length,
+    paused: campaigns.filter(c => c.status === "paused").length,
+    draft: campaigns.filter(c => c.status === "draft").length,
+  };
+
+  const handleCreate = () => {
+    const name = newName.trim();
+    const budget = parseFloat(newBudget);
+    if (!name || isNaN(budget) || budget <= 0) return;
+    onAdd(name, newPlatform, budget);
+    setNewName("");
+    setNewBudget("");
+    setNewPlatform("yandex");
+    setShowModal(false);
+  };
 
   return (
     <div className="p-8 animate-fade-in">
-      {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="font-heading text-2xl font-bold text-foreground">Рекламные кампании</h1>
           <p className="text-muted-foreground text-sm mt-1">Управление и мониторинг всех кампаний</p>
         </div>
         <button
-          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-background"
+          onClick={() => setShowModal(true)}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-background transition-all hover:scale-105"
           style={{ background: 'linear-gradient(135deg, hsl(185,100%,55%), hsl(200,100%,50%))' }}
         >
           <Icon name="Plus" size={16} />
@@ -35,13 +63,12 @@ export default function Campaigns() {
         </button>
       </div>
 
-      {/* Summary cards */}
       <div className="grid grid-cols-4 gap-4 mb-6">
         {[
-          { label: "Всего кампаний", value: "6", icon: "Megaphone", color: 'hsl(185,100%,55%)' },
-          { label: "Активных", value: "3", icon: "Play", color: 'hsl(145,70%,50%)' },
-          { label: "На паузе", value: "1", icon: "Pause", color: 'hsl(30,100%,60%)' },
-          { label: "Черновики", value: "2", icon: "FileEdit", color: 'hsl(260,80%,65%)' },
+          { label: "Всего кампаний", value: counts.all, icon: "Megaphone", color: 'hsl(185,100%,55%)' },
+          { label: "Активных", value: counts.active, icon: "Play", color: 'hsl(145,70%,50%)' },
+          { label: "На паузе", value: counts.paused, icon: "Pause", color: 'hsl(30,100%,60%)' },
+          { label: "Черновики", value: counts.draft, icon: "FileEdit", color: 'hsl(260,80%,65%)' },
         ].map((s, i) => (
           <div key={i} className="glass rounded-xl p-4 flex items-center gap-3">
             <div className="w-9 h-9 rounded-lg flex items-center justify-center"
@@ -56,81 +83,72 @@ export default function Campaigns() {
         ))}
       </div>
 
-      {/* Filters */}
       <div className="flex items-center gap-2 mb-5">
         {[
-          { id: "all", label: "Все" },
-          { id: "active", label: "Активные" },
-          { id: "paused", label: "На паузе" },
-          { id: "draft", label: "Черновики" },
+          { id: "all", label: `Все (${counts.all})` },
+          { id: "active", label: `Активные (${counts.active})` },
+          { id: "paused", label: `На паузе (${counts.paused})` },
+          { id: "draft", label: `Черновики (${counts.draft})` },
         ].map((f) => (
           <button
             key={f.id}
             onClick={() => setFilter(f.id)}
             className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-              filter === f.id
-                ? "text-background"
-                : "glass text-muted-foreground hover:text-foreground"
+              filter === f.id ? "text-background" : "glass text-muted-foreground hover:text-foreground"
             }`}
-            style={filter === f.id ? {
-              background: 'linear-gradient(135deg, hsl(185,100%,55%), hsl(200,100%,50%))'
-            } : {}}
+            style={filter === f.id ? { background: 'linear-gradient(135deg, hsl(185,100%,55%), hsl(200,100%,50%))' } : {}}
           >
             {f.label}
           </button>
         ))}
-        <div className="ml-auto flex items-center gap-2">
-          <div className="relative">
-            <Icon name="Search" size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Поиск кампаний..."
-              className="pl-9 pr-4 py-2 rounded-xl bg-muted/50 border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-neon-cyan/50 w-52 transition-colors"
-            />
-          </div>
+        <div className="ml-auto relative">
+          <Icon name="Search" size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <input
+            type="text"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Поиск кампаний..."
+            className="pl-9 pr-4 py-2 rounded-xl bg-muted/50 border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-neon-cyan/50 w-52 transition-colors"
+          />
         </div>
       </div>
 
-      {/* Campaign cards */}
       <div className="space-y-3">
+        {filtered.length === 0 && (
+          <div className="glass rounded-2xl p-10 text-center text-muted-foreground text-sm">
+            {search ? `Ничего не найдено по запросу «${search}»` : "Нет кампаний в этой категории"}
+          </div>
+        )}
         {filtered.map((c) => (
           <div key={c.id} className="glass glass-hover rounded-2xl p-5 flex items-center gap-5">
-            {/* Platform + name */}
             <div className="flex items-center gap-3 flex-1 min-w-0">
-              <span className="text-2xl">{platformIcon[c.platform as keyof typeof platformIcon]}</span>
+              <span className="text-2xl">{platformIcon[c.platform]}</span>
               <div className="min-w-0">
                 <div className="text-sm font-semibold text-foreground truncate">{c.name}</div>
-                <div className="text-xs text-muted-foreground">{platformName[c.platform as keyof typeof platformName]} · {c.ads} объявлений</div>
+                <div className="text-xs text-muted-foreground">{platformName[c.platform]} · {c.ads} объявл.</div>
               </div>
             </div>
 
-            {/* Status */}
             <span className={`text-xs px-2.5 py-1 rounded-lg font-semibold flex-shrink-0 ${
-              c.status === 'active' ? 'status-active'
-              : c.status === 'paused' ? 'status-paused'
-              : 'status-draft'
+              c.status === 'active' ? 'status-active' : c.status === 'paused' ? 'status-paused' : 'status-draft'
             }`}>
               {c.status === 'active' ? 'Активна' : c.status === 'paused' ? 'Пауза' : 'Черновик'}
             </span>
 
-            {/* Budget bar */}
             <div className="w-36 flex-shrink-0">
               <div className="flex justify-between text-[11px] text-muted-foreground mb-1">
                 <span>Бюджет</span>
-                <span className="text-foreground font-medium">₽{(c.spent/1000).toFixed(1)}k / ₽{(c.budget/1000).toFixed(0)}k</span>
+                <span className="text-foreground font-medium">₽{(c.spent / 1000).toFixed(1)}k / ₽{(c.budget / 1000).toFixed(0)}k</span>
               </div>
               <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                <div
-                  className="h-full rounded-full"
+                <div className="h-full rounded-full"
                   style={{
-                    width: `${c.budget > 0 ? (c.spent / c.budget) * 100 : 0}%`,
+                    width: `${c.budget > 0 ? Math.min((c.spent / c.budget) * 100, 100) : 0}%`,
                     background: 'linear-gradient(90deg, hsl(185,100%,55%), hsl(260,80%,65%))'
-                  }}
-                />
+                  }} />
               </div>
             </div>
 
-            {/* Metrics */}
             <div className="flex items-center gap-6 text-center flex-shrink-0">
               <div>
                 <div className="text-xs text-muted-foreground">Показы</div>
@@ -152,21 +170,125 @@ export default function Campaigns() {
               </div>
             </div>
 
-            {/* Actions */}
             <div className="flex items-center gap-1.5 flex-shrink-0">
-              <button className="p-2 rounded-xl glass text-muted-foreground hover:text-foreground transition-colors">
+              <button
+                onClick={() => onToggle(c.id)}
+                title={c.status === 'active' ? 'Поставить на паузу' : 'Запустить'}
+                className="p-2 rounded-xl glass text-muted-foreground hover:text-foreground transition-colors"
+              >
                 <Icon name={c.status === 'active' ? 'Pause' : 'Play'} size={15} />
               </button>
-              <button className="p-2 rounded-xl glass text-muted-foreground hover:text-foreground transition-colors">
-                <Icon name="Settings" size={15} />
+              <button
+                onClick={() => onNavigate("export")}
+                title="Экспортировать"
+                className="p-2 rounded-xl glass text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <Icon name="Upload" size={15} />
               </button>
-              <button className="p-2 rounded-xl glass text-muted-foreground hover:text-foreground transition-colors">
-                <Icon name="BarChart2" size={15} />
+              <button
+                onClick={() => setDeleteId(c.id)}
+                title="Удалить"
+                className="p-2 rounded-xl glass text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+              >
+                <Icon name="Trash2" size={15} />
               </button>
             </div>
           </div>
         ))}
       </div>
+
+      {/* Create modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="glass rounded-2xl p-6 w-full max-w-md shadow-2xl">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="font-heading font-bold text-foreground text-lg">Новая кампания</h2>
+              <button onClick={() => setShowModal(false)} className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors">
+                <Icon name="X" size={18} />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Название кампании</label>
+                <input
+                  type="text"
+                  value={newName}
+                  onChange={e => setNewName(e.target.value)}
+                  placeholder="Например: Летняя распродажа"
+                  className="w-full px-4 py-2.5 rounded-xl bg-muted/50 border border-border text-sm text-foreground focus:outline-none focus:border-neon-cyan/50 transition-colors"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Платформа</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {(["yandex", "google"] as const).map(p => (
+                    <button key={p} onClick={() => setNewPlatform(p)}
+                      className={`p-3 rounded-xl text-sm font-medium flex items-center gap-2 transition-all ${newPlatform === p ? "text-background" : "glass text-muted-foreground hover:text-foreground"}`}
+                      style={newPlatform === p ? { background: 'linear-gradient(135deg, hsl(185,100%,55%), hsl(200,100%,50%))' } : {}}>
+                      <span>{p === "yandex" ? "🟡" : "🔵"}</span>
+                      {p === "yandex" ? "Яндекс Директ" : "Google Ads"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Бюджет (₽)</label>
+                <input
+                  type="number"
+                  value={newBudget}
+                  onChange={e => setNewBudget(e.target.value)}
+                  placeholder="10000"
+                  min="1"
+                  className="w-full px-4 py-2.5 rounded-xl bg-muted/50 border border-border text-sm text-foreground focus:outline-none focus:border-neon-cyan/50 transition-colors"
+                />
+              </div>
+            </div>
+            <div className="flex gap-3 mt-5">
+              <button onClick={() => setShowModal(false)}
+                className="flex-1 py-2.5 rounded-xl glass text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+                Отмена
+              </button>
+              <button
+                onClick={handleCreate}
+                disabled={!newName.trim() || !newBudget}
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-background transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ background: 'linear-gradient(135deg, hsl(185,100%,55%), hsl(200,100%,50%))' }}>
+                Создать
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete confirm */}
+      {deleteId !== null && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="glass rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-destructive/20 flex items-center justify-center">
+                <Icon name="Trash2" size={18} className="text-destructive" />
+              </div>
+              <div>
+                <h2 className="font-heading font-bold text-foreground">Удалить кампанию?</h2>
+                <p className="text-xs text-muted-foreground">«{campaigns.find(c => c.id === deleteId)?.name}»</p>
+              </div>
+            </div>
+            <p className="text-sm text-muted-foreground mb-5">Это действие нельзя отменить.</p>
+            <div className="flex gap-3">
+              <button onClick={() => setDeleteId(null)}
+                className="flex-1 py-2.5 rounded-xl glass text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+                Отмена
+              </button>
+              <button
+                onClick={() => { onDelete(deleteId); setDeleteId(null); }}
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:scale-[1.02]"
+                style={{ background: 'linear-gradient(135deg, hsl(0,80%,55%), hsl(15,80%,50%))' }}>
+                Удалить
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
