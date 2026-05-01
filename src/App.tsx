@@ -15,6 +15,7 @@ import Automations from "./pages/Automations";
 import Insights from "./pages/Insights";
 import Sidebar from "./components/Sidebar";
 import FloatingAgent from "./components/FloatingAgent";
+import Icon from "./components/ui/icon";
 
 export type Page =
   | "agent" | "dashboard" | "insights"
@@ -83,6 +84,19 @@ export default function App() {
   const [campaigns, setCampaigns] = useState<Campaign[]>(initialCampaigns);
   const [feeds, setFeeds] = useState<Feed[]>(initialFeeds);
   const [exportHistory, setExportHistory] = useState<ExportRecord[]>(initialExportHistory);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem("adflow_sidebar_collapsed") === "1";
+  });
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
+  const toggleSidebarCollapse = () => {
+    setSidebarCollapsed(prev => {
+      const next = !prev;
+      localStorage.setItem("adflow_sidebar_collapsed", next ? "1" : "0");
+      return next;
+    });
+  };
 
   const handleToggleCampaign = (id: number) => {
     setCampaigns(prev => prev.map(c =>
@@ -182,8 +196,25 @@ export default function App() {
     <TooltipProvider>
       <Toaster />
       <div className="flex h-screen bg-background overflow-hidden">
-        <Sidebar activePage={activePage} onNavigate={setActivePage} campaigns={campaigns} feeds={feeds} />
+        <Sidebar
+          activePage={activePage}
+          onNavigate={setActivePage}
+          campaigns={campaigns}
+          feeds={feeds}
+          collapsed={sidebarCollapsed}
+          onToggleCollapse={toggleSidebarCollapse}
+          mobileOpen={mobileSidebarOpen}
+          onCloseMobile={() => setMobileSidebarOpen(false)}
+        />
         <main className="flex-1 overflow-y-auto relative">
+          {/* Mobile hamburger */}
+          <button
+            onClick={() => setMobileSidebarOpen(true)}
+            className="md:hidden fixed top-4 left-4 z-30 w-11 h-11 rounded-2xl flex items-center justify-center shadow-lg"
+            style={{ background: 'linear-gradient(135deg, hsl(185,100%,55%), hsl(260,80%,65%))' }}>
+            <Icon name="Menu" size={20} className="text-background" />
+          </button>
+
           {!isAgentPage && (
             <div className="fixed inset-0 pointer-events-none overflow-hidden">
               <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full opacity-[0.18]"
