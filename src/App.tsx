@@ -4,7 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Dashboard from "./pages/Dashboard";
 import Feeds from "./pages/Feeds";
 import AiGenerator from "./pages/AiGenerator";
-import Campaigns from "./pages/Campaigns";
+import YdCampaigns from "./pages/yd/YdCampaigns";
 import Export from "./pages/Export";
 import Settings from "./pages/Settings";
 import Calendar from "./pages/Calendar";
@@ -254,7 +254,7 @@ function MainApp() {
       case "templates":
         return <Templates />;
       case "campaigns":
-        return <Campaigns campaigns={campaigns} onToggle={handleToggleCampaign} onDelete={handleDeleteCampaign} onAdd={handleAddCampaign} onDuplicate={handleDuplicateCampaign} onNavigate={setActivePage} />;
+        return <YdCampaigns />;
       case "calendar":
         return <Calendar campaigns={campaigns} />;
       case "export":
