@@ -20,6 +20,7 @@ import Breadcrumbs from "./components/Breadcrumbs";
 import LegalDisclaimer from "./components/LegalDisclaimer";
 import Auth from "./pages/Auth";
 import PaymentSuccess from "./pages/PaymentSuccess";
+import YandexOAuthCallback from "./pages/YandexOAuthCallback";
 import AdminLayout from "./pages/admin/AdminLayout";
 import useSwipeGesture from "./hooks/useSwipeGesture";
 import { useCloudSync } from "./hooks/useCloudSync";
@@ -106,6 +107,14 @@ export default function App() {
       <TooltipProvider>
         <Toaster />
         <PaymentSuccess />
+      </TooltipProvider>
+    );
+  }
+  if (path.startsWith("/yandex-oauth-callback")) {
+    return (
+      <TooltipProvider>
+        <Toaster />
+        <YandexOAuthCallback />
       </TooltipProvider>
     );
   }

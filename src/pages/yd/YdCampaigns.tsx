@@ -3,6 +3,8 @@ import Icon from "@/components/ui/icon";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { ydApi } from "./api";
+import { ydApiClient } from "./ydApiClient";
+import type { YdApiStatus } from "./ydApiClient";
 import { CAMPAIGN_TYPE_META, STATUS_LABEL, STATUS_COLOR } from "./types";
 import type { YdCampaignListItem, YdCampaignType } from "./types";
 import YdWizard from "./YdWizard";
@@ -16,6 +18,8 @@ export default function YdCampaigns() {
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState("");
   const [newType, setNewType] = useState<YdCampaignType>("text");
+  const [ydStatus, setYdStatus] = useState<YdApiStatus | null>(null);
+  const [sendingId, setSendingId] = useState<number | null>(null);
 
   const load = useCallback(() => {
     if (!user) { setLoading(false); return; }
@@ -27,6 +31,35 @@ export default function YdCampaigns() {
   }, [user, toast]);
 
   useEffect(() => { load(); }, [load]);
+
+  useEffect(() => {
+    if (!user) return;
+    ydApiClient.status().then(setYdStatus).catch(() => undefined);
+  }, [user]);
+
+  const sendToYd = async (id: number) => {
+    if (!ydStatus?.connected) {
+      toast({
+        title: "Сначала подключите Яндекс",
+        description: "Настройки → Подключения → Подключить аккаунт Яндекса",
+      });
+      return;
+    }
+    if (!confirm("Отправить кампанию в Яндекс Директ? Будет создана через API.")) return;
+    setSendingId(id);
+    try {
+      const res = await ydApiClient.send(id);
+      toast({
+        title: "Кампания создана в ЯД",
+        description: `ID в Директе: ${res.yd_campaign_id}`,
+      });
+      load();
+    } catch (e) {
+      toast({ title: "Ошибка отправки", description: String(e) });
+    } finally {
+      setSendingId(null);
+    }
+  };
 
   // Авто-открытие кампании по запросу извне (например, после применения шаблона)
   useEffect(() => {
@@ -154,6 +187,14 @@ export default function YdCampaigns() {
                     <button onClick={() => setEditingId(c.id)} title="Открыть"
                       className="p-1.5 rounded-lg glass text-neon-cyan hover:bg-muted/30">
                       <Icon name="Pencil" size={13} />
+                    </button>
+                    <button onClick={() => sendToYd(c.id)}
+                      disabled={sendingId === c.id || c.status === "sent"}
+                      title={c.status === "sent" ? "Уже в Яндекс Директе" : "Отправить в Яндекс Директ"}
+                      className="p-1.5 rounded-lg glass hover:bg-muted/30 disabled:opacity-50"
+                      style={{ color: c.status === "sent" ? "hsl(145,70%,50%)" : "hsl(45,100%,55%)" }}>
+                      <Icon name={sendingId === c.id ? "Loader2" : "Send"} size={13}
+                        className={sendingId === c.id ? "animate-spin" : ""} />
                     </button>
                     <button onClick={() => remove(c.id)} title="Удалить"
                       className="p-1.5 rounded-lg glass text-destructive hover:bg-destructive/10">

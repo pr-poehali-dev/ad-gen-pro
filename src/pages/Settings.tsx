@@ -3,11 +3,14 @@ import Icon from "@/components/ui/icon";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth, authHeaders } from "@/contexts/AuthContext";
 import func2url from "../../backend/func2url.json";
+import { ydApiClient } from "./yd/ydApiClient";
+import type { YdApiStatus } from "./yd/ydApiClient";
 
 const SETTINGS_URL = (func2url as Record<string, string>).settings;
 
 const tabs = [
   { id: "account", label: "Аккаунт", icon: "User" },
+  { id: "integrations", label: "Подключения", icon: "Link" },
   { id: "api", label: "API ключи", icon: "Key" },
   { id: "limits", label: "Лимиты", icon: "Shield" },
 ];
@@ -297,6 +300,8 @@ export default function Settings() {
                 </div>
               )}
 
+              {activeTab === "integrations" && <YandexDirectIntegration />}
+
               {activeTab === "limits" && (
                 <div className="glass rounded-2xl p-6 space-y-3">
                   <h3 className="font-heading font-bold text-foreground mb-2">Лимиты тарифа</h3>
@@ -333,6 +338,122 @@ function Field({ label, value, onChange, placeholder, disabled }: {
         onChange={(e) => onChange && onChange(e.target.value)}
         className={`w-full px-4 py-2.5 rounded-xl bg-muted/50 border border-border text-sm text-foreground focus:outline-none focus:border-neon-cyan/50 transition-colors ${disabled ? "opacity-60 cursor-not-allowed" : ""}`}
       />
+    </div>
+  );
+}
+
+function YandexDirectIntegration() {
+  const { toast } = useToast();
+  const [status, setStatus] = useState<YdApiStatus | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
+
+  const load = useCallback(() => {
+    setLoading(true);
+    ydApiClient.status()
+      .then(setStatus)
+      .catch((e) => toast({ title: "Не удалось загрузить", description: String(e) }))
+      .finally(() => setLoading(false));
+  }, [toast]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const connect = async () => {
+    setBusy(true);
+    try {
+      const redirectUri = `${window.location.origin}/yandex-oauth-callback`;
+      const { auth_url } = await ydApiClient.connectUrl(redirectUri);
+      window.location.href = auth_url;
+    } catch (e) {
+      toast({ title: "Ошибка", description: String(e) });
+      setBusy(false);
+    }
+  };
+
+  const disconnect = async () => {
+    if (!confirm("Отключить аккаунт Яндекс Директ?")) return;
+    setBusy(true);
+    try {
+      await ydApiClient.disconnect();
+      toast({ title: "Аккаунт отключён" });
+      load();
+    } catch (e) {
+      toast({ title: "Ошибка", description: String(e) });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (loading || !status) {
+    return (
+      <div className="glass rounded-2xl p-8 text-center">
+        <Icon name="Loader2" size={24} className="animate-spin text-neon-cyan mx-auto" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="glass rounded-2xl p-6">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl"
+          style={{ background: "linear-gradient(135deg, hsl(45,100%,55%), hsl(30,100%,55%))" }}>
+          🟡
+        </div>
+        <div>
+          <h3 className="font-heading font-bold text-foreground">Яндекс Директ</h3>
+          <p className="text-xs text-muted-foreground">Прямая отправка кампаний в кабинет ЯД через API</p>
+        </div>
+      </div>
+
+      {!status.oauth_configured ? (
+        <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 text-sm">
+          <div className="flex items-center gap-2 text-amber-500 font-bold mb-2">
+            <Icon name="AlertTriangle" size={14} /> OAuth-приложение не настроено
+          </div>
+          <div className="text-xs text-muted-foreground mb-3 space-y-2">
+            <p>Чтобы пользователи могли подключать свои аккаунты Яндекс Директ, нужно зарегистрировать OAuth-приложение Яндекса:</p>
+            <ol className="list-decimal list-inside space-y-1 ml-1">
+              <li>Откройте <a className="text-neon-cyan hover:underline" href="https://oauth.yandex.ru/client/new" target="_blank" rel="noreferrer">oauth.yandex.ru/client/new</a></li>
+              <li>Платформа: «Веб-сервисы»</li>
+              <li>Callback URI: <span className="font-mono text-foreground">{window.location.origin}/yandex-oauth-callback</span></li>
+              <li>Доступы: <span className="font-mono text-foreground">direct:api</span></li>
+              <li>Скопируйте <b>ID</b> и <b>Пароль</b> приложения в секреты проекта (YANDEX_OAUTH_CLIENT_ID и YANDEX_OAUTH_CLIENT_SECRET)</li>
+            </ol>
+          </div>
+        </div>
+      ) : status.connected ? (
+        <div className="space-y-3">
+          <div className="bg-neon-green/10 border border-neon-green/40 rounded-xl p-3 flex items-center gap-3">
+            <Icon name="CheckCircle2" size={18} className="text-neon-green" />
+            <div className="flex-1 min-w-0">
+              <div className="font-bold text-foreground text-sm">Подключено</div>
+              <div className="text-xs text-muted-foreground truncate">
+                Аккаунт: <span className="font-mono text-foreground">{status.account_login || "—"}</span>
+              </div>
+            </div>
+            <button onClick={disconnect} disabled={busy}
+              className="px-3 py-1.5 rounded-lg text-xs text-destructive hover:bg-destructive/10 flex items-center gap-1 disabled:opacity-50">
+              <Icon name="LogOut" size={12} /> Отключить
+            </button>
+          </div>
+          <div className="text-xs text-muted-foreground">
+            Теперь в карточке любой кампании появится кнопка «Отправить в Яндекс Директ» —
+            кампания создастся в кабинете ЯД одним кликом.
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          <div className="text-sm text-muted-foreground mb-3">
+            Подключите свой аккаунт Яндекс — получим доступ к API только для управления кампаниями. Вы сможете отозвать его в любой момент в кабинете Яндекса.
+          </div>
+          <button onClick={connect} disabled={busy}
+            className="w-full px-5 py-3 rounded-xl text-sm font-bold text-background flex items-center justify-center gap-2 disabled:opacity-50"
+            style={{ background: "linear-gradient(135deg, hsl(45,100%,55%), hsl(30,100%,55%))" }}>
+            {busy ? <Icon name="Loader2" size={14} className="animate-spin" /> : <Icon name="Link" size={14} />}
+            Подключить аккаунт Яндекса
+          </button>
+        </div>
+      )}
     </div>
   );
 }
