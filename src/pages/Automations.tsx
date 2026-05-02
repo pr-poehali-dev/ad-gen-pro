@@ -52,20 +52,20 @@ export default function Automations() {
   };
 
   return (
-    <div className="p-8 animate-fade-in">
-      <div className="flex items-center justify-between mb-8">
+    <div className="p-4 md:p-8 pt-16 md:pt-8 animate-fade-in">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6 md:mb-8">
         <div>
           <div className="flex items-center gap-2 text-xs text-neon-cyan mb-2 uppercase tracking-widest font-bold">
             <Icon name="Bot" size={13} />
             AI-автоматизации работают 24/7
           </div>
-          <h1 className="font-heading text-2xl font-bold text-foreground">Автоматизация процессов</h1>
+          <h1 className="font-heading text-xl md:text-2xl font-bold text-foreground">Автоматизация процессов</h1>
           <p className="text-muted-foreground text-sm mt-1">Включите сценарии — AI-агент сам управляет вашими кампаниями</p>
         </div>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <div className="glass rounded-2xl p-5">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-9 h-9 rounded-xl flex items-center justify-center"
@@ -109,7 +109,7 @@ export default function Automations() {
       </div>
 
       {/* Filters */}
-      <div className="flex items-center gap-2 mb-5">
+      <div className="flex items-center gap-2 mb-5 flex-wrap">
         <button onClick={() => setFilter("all")}
           className={`px-3 py-2 rounded-xl text-xs font-medium transition-all ${
             filter === "all" ? "text-background" : "glass text-muted-foreground hover:text-foreground"
@@ -136,7 +136,7 @@ export default function Automations() {
       {/* Automations list */}
       <div className="space-y-3">
         {filtered.map(a => (
-          <div key={a.id} className={`glass rounded-2xl p-5 flex items-center gap-5 transition-all ${
+          <div key={a.id} className={`glass rounded-2xl p-5 flex flex-col md:flex-row md:items-center gap-4 md:gap-5 transition-all ${
             a.enabled ? "" : "opacity-60"
           }`}>
             <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"

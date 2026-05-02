@@ -55,15 +55,15 @@ export default function Feeds({ feeds, onDelete, onRefresh, onAdd }: FeedsProps)
   };
 
   return (
-    <div className="p-8 animate-fade-in">
-      <div className="flex items-center justify-between mb-8">
+    <div className="p-4 md:p-8 pt-16 md:pt-8 animate-fade-in">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6 md:mb-8">
         <div>
-          <h1 className="font-heading text-2xl font-bold text-foreground">Загрузка фидов</h1>
+          <h1 className="font-heading text-xl md:text-2xl font-bold text-foreground">Загрузка фидов</h1>
           <p className="text-muted-foreground text-sm mt-1">Поддерживаются форматы YML, CSV, Excel</p>
         </div>
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-background transition-all hover:scale-105"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-background transition-all hover:scale-105 self-start md:self-auto"
           style={{ background: 'linear-gradient(135deg, hsl(185,100%,55%), hsl(200,100%,50%))' }}
         >
           <Icon name="Plus" size={16} />
@@ -115,7 +115,8 @@ export default function Feeds({ feeds, onDelete, onRefresh, onAdd }: FeedsProps)
             Нет загруженных фидов. Перетащите файл или нажмите «Добавить фид».
           </div>
         ) : (
-          <table className="w-full">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[640px]">
             <thead>
               <tr className="border-b border-border/30">
                 {["Название", "Формат", "Товаров", "Размер", "Обновлён", "Статус", ""].map((h) => (
@@ -176,9 +177,10 @@ export default function Feeds({ feeds, onDelete, onRefresh, onAdd }: FeedsProps)
               ))}
             </tbody>
           </table>
+          </div>
         )}
 
-        <div className="px-6 py-3 border-t border-border/30 flex items-center gap-6 text-xs text-muted-foreground">
+        <div className="px-6 py-3 border-t border-border/30 flex flex-wrap items-center gap-x-6 gap-y-1 text-xs text-muted-foreground">
           <span>Итого фидов: <strong className="text-foreground">{feeds.length}</strong></span>
           <span>Всего товаров: <strong className="text-foreground">{totalProducts.toLocaleString("ru-RU")}</strong></span>
           <span>Последнее обновление: <strong className="text-foreground">{lastUpdated}</strong></span>

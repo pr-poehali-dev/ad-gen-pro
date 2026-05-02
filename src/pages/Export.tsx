@@ -40,17 +40,17 @@ export default function Export({ campaigns, exportHistory, onExport }: ExportPro
   const totalAds = campaigns.filter(c => selectedCampaigns.includes(c.id)).reduce((s, c) => s + c.ads, 0);
 
   return (
-    <div className="p-8 animate-fade-in">
-      <div className="mb-8">
-        <h1 className="font-heading text-2xl font-bold text-foreground">Экспорт кампаний</h1>
+    <div className="p-4 md:p-8 pt-16 md:pt-8 animate-fade-in">
+      <div className="mb-6 md:mb-8">
+        <h1 className="font-heading text-xl md:text-2xl font-bold text-foreground">Экспорт кампаний</h1>
         <p className="text-muted-foreground text-sm mt-1">Выгрузите готовые кампании в Яндекс Директ или Google Ads</p>
       </div>
 
-      <div className="grid grid-cols-3 gap-6">
-        <div className="col-span-2 space-y-5">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-5">
           <div className="glass rounded-2xl p-6">
             <h3 className="font-heading font-bold text-foreground mb-4">Платформа назначения</h3>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {[
                 { id: "yandex", name: "Яндекс Директ", icon: "🟡", desc: "Экспорт через API Директ", color: 'hsl(30,100%,60%)' },
                 { id: "google", name: "Google Ads", icon: "🔵", desc: "Экспорт через Google Ads API", color: 'hsl(185,100%,55%)' },

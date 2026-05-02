@@ -127,41 +127,41 @@ export default function Agent({ campaigns, feeds, onNavigate }: AgentProps) {
       </div>
 
       {/* HERO */}
-      <section className="px-12 pt-12 pb-16 relative">
+      <section className="px-4 md:px-12 pt-16 md:pt-12 pb-12 md:pb-16 relative">
         <div className="max-w-6xl">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass mb-6">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass mb-5 md:mb-6">
             <div className="w-2 h-2 rounded-full bg-neon-green animate-pulse-slow" />
             <span className="text-xs font-medium text-foreground">Online · 50+ клиентов · 7 лет на рынке</span>
           </div>
 
-          <h1 className="font-heading font-bold text-foreground leading-[0.95] tracking-tight" style={{ fontSize: "clamp(2.5rem, 5.5vw, 5rem)" }}>
+          <h1 className="font-heading font-bold text-foreground leading-[1.05] md:leading-[0.95] tracking-tight" style={{ fontSize: "clamp(2rem, 5.5vw, 5rem)" }}>
             Digital-агентство,<br />
             <span style={{ background: 'linear-gradient(135deg, hsl(185,100%,55%), hsl(260,80%,65%), hsl(320,80%,65%))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               где маркетинг делает ИИ
             </span>
           </h1>
 
-          <p className="text-xl text-muted-foreground mt-6 max-w-2xl leading-relaxed">
+          <p className="text-base md:text-xl text-muted-foreground mt-5 md:mt-6 max-w-2xl leading-relaxed">
             От идеи до запуска кампании — за 48 часов. Команда из 15 маркетологов и AI-агент работают 24/7,
             пока вы спите.
           </p>
 
-          <div className="flex items-center gap-3 mt-8">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-6 md:mt-8">
             <button onClick={() => onNavigate("services")}
-              className="flex items-center gap-2 px-6 py-3.5 rounded-2xl text-sm font-bold text-background transition-all hover:scale-105"
+              className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl text-sm font-bold text-background transition-all hover:scale-105"
               style={{ background: 'linear-gradient(135deg, hsl(185,100%,55%), hsl(260,80%,65%))', boxShadow: '0 10px 40px rgba(0, 220, 230, 0.3)' }}>
               <Icon name="Rocket" size={18} />
               Получить аудит бесплатно
             </button>
             <button onClick={() => onNavigate("ai")}
-              className="flex items-center gap-2 px-6 py-3.5 rounded-2xl glass text-sm font-bold text-foreground hover:bg-muted/30 transition-colors">
+              className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl glass text-sm font-bold text-foreground hover:bg-muted/30 transition-colors">
               <Icon name="PlayCircle" size={18} />
               Демо за 2 минуты
             </button>
           </div>
 
           {/* Live ticker stats */}
-          <div className="grid grid-cols-4 gap-4 mt-12">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mt-8 md:mt-12">
             {[
               { label: "Управляемый бюджет", value: <Counter to={487} suffix=" М ₽" />, color: "hsl(185,100%,55%)" },
               { label: "Кампаний запущено", value: <Counter to={12450} />, color: "hsl(260,80%,65%)" },
@@ -201,7 +201,7 @@ export default function Agent({ campaigns, feeds, onNavigate }: AgentProps) {
       </section>
 
       {/* CLIENTS LOGOS */}
-      <section className="px-12 py-8 border-y border-border/20">
+      <section className="px-4 md:px-12 py-8 border-y border-border/20">
         <div className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold text-center mb-5">
           Нам доверяют
         </div>
@@ -215,9 +215,9 @@ export default function Agent({ campaigns, feeds, onNavigate }: AgentProps) {
       </section>
 
       {/* CASE STUDIES */}
-      <section className="px-12 py-16">
+      <section className="px-4 md:px-12 py-12 md:py-16">
         <div className="max-w-6xl">
-          <div className="flex items-end justify-between mb-10">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-8 md:mb-10">
             <div>
               <div className="flex items-center gap-2 text-xs text-neon-cyan mb-2 uppercase tracking-widest font-bold">
                 <Icon name="Trophy" size={13} />
@@ -235,8 +235,8 @@ export default function Agent({ campaigns, feeds, onNavigate }: AgentProps) {
 
           <div className="space-y-4">
             {cases.map((c, i) => (
-              <div key={i} className="glass glass-hover rounded-3xl p-6 grid grid-cols-12 gap-6 group">
-                <div className="col-span-3 flex flex-col justify-center">
+              <div key={i} className="glass glass-hover rounded-3xl p-5 md:p-6 grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6 group">
+                <div className="md:col-span-3 flex flex-col justify-center">
                   <div className="text-[10px] uppercase tracking-widest font-bold mb-2" style={{ color: c.color }}>
                     {c.industry}
                   </div>
@@ -244,7 +244,7 @@ export default function Agent({ campaigns, feeds, onNavigate }: AgentProps) {
                   <div className="text-xs text-muted-foreground">{c.period}</div>
                 </div>
 
-                <div className="col-span-5 flex flex-col justify-center space-y-3">
+                <div className="md:col-span-5 flex flex-col justify-center space-y-3">
                   <div>
                     <div className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold mb-1">Задача</div>
                     <div className="text-sm text-foreground/80">{c.challenge}</div>
@@ -255,7 +255,7 @@ export default function Agent({ campaigns, feeds, onNavigate }: AgentProps) {
                   </div>
                 </div>
 
-                <div className="col-span-4 grid grid-cols-3 gap-2">
+                <div className="md:col-span-4 grid grid-cols-3 gap-2">
                   {c.metrics.map((m, mi) => (
                     <div key={mi} className="rounded-2xl p-3 text-center"
                       style={{ background: `${c.color}15`, border: `1px solid ${c.color}40` }}>
@@ -271,9 +271,9 @@ export default function Agent({ campaigns, feeds, onNavigate }: AgentProps) {
       </section>
 
       {/* EXPERTISE GRID */}
-      <section className="px-12 py-16">
+      <section className="px-4 md:px-12 py-12 md:py-16">
         <div className="max-w-6xl">
-          <div className="flex items-end justify-between mb-10">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-8 md:mb-10">
             <div>
               <div className="flex items-center gap-2 text-xs text-neon-cyan mb-2 uppercase tracking-widest font-bold">
                 <Icon name="Layers" size={13} />
@@ -289,7 +289,7 @@ export default function Agent({ campaigns, feeds, onNavigate }: AgentProps) {
             </button>
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
             {expertise.map((s, i) => (
               <button key={i} onClick={() => onNavigate("services")}
                 className="glass glass-hover rounded-2xl p-6 text-left group transition-all hover:scale-[1.02]">
@@ -310,9 +310,9 @@ export default function Agent({ campaigns, feeds, onNavigate }: AgentProps) {
       </section>
 
       {/* TESTIMONIALS */}
-      <section className="px-12 py-16">
+      <section className="px-4 md:px-12 py-12 md:py-16">
         <div className="max-w-6xl">
-          <div className="mb-10">
+          <div className="mb-8 md:mb-10">
             <div className="flex items-center gap-2 text-xs text-neon-cyan mb-2 uppercase tracking-widest font-bold">
               <Icon name="Quote" size={13} />
               Отзывы клиентов
@@ -322,7 +322,7 @@ export default function Agent({ campaigns, feeds, onNavigate }: AgentProps) {
             </h2>
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {testimonials.map((t, i) => (
               <div key={i} className="glass rounded-2xl p-6 relative">
                 <div className="flex items-center gap-1 mb-4">
@@ -348,9 +348,9 @@ export default function Agent({ campaigns, feeds, onNavigate }: AgentProps) {
       </section>
 
       {/* YOUR DATA SECTION */}
-      <section className="px-12 py-16">
+      <section className="px-4 md:px-12 py-12 md:py-16">
         <div className="max-w-6xl">
-          <div className="glass rounded-3xl p-8 grid grid-cols-2 gap-8 relative overflow-hidden">
+          <div className="glass rounded-3xl p-5 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 relative overflow-hidden">
             <div className="absolute -top-20 -right-20 w-72 h-72 rounded-full opacity-15"
               style={{ background: 'radial-gradient(circle, hsl(185,100%,55%), transparent 70%)' }} />
             <div className="relative">
@@ -358,7 +358,7 @@ export default function Agent({ campaigns, feeds, onNavigate }: AgentProps) {
                 <div className="w-1.5 h-1.5 rounded-full bg-neon-green animate-pulse-slow" />
                 Live · Ваш аккаунт
               </div>
-              <h3 className="font-heading font-bold text-foreground text-3xl mb-3 leading-tight">
+              <h3 className="font-heading font-bold text-foreground text-2xl md:text-3xl mb-3 leading-tight">
                 Текущая картина по вашим кампаниям
               </h3>
               <p className="text-sm text-muted-foreground mb-6">
@@ -395,9 +395,9 @@ export default function Agent({ campaigns, feeds, onNavigate }: AgentProps) {
       </section>
 
       {/* HOW IT WORKS */}
-      <section className="px-12 py-16">
+      <section className="px-4 md:px-12 py-12 md:py-16">
         <div className="max-w-6xl">
-          <div className="mb-10">
+          <div className="mb-8 md:mb-10">
             <div className="flex items-center gap-2 text-xs text-neon-cyan mb-2 uppercase tracking-widest font-bold">
               <Icon name="Workflow" size={13} />
               Процесс
@@ -407,7 +407,7 @@ export default function Agent({ campaigns, feeds, onNavigate }: AgentProps) {
             </h2>
           </div>
 
-          <div className="grid grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
             {[
               { n: "01", title: "Аудит", desc: "Анализ ниши, конкурентов, ваших данных", icon: "Search" },
               { n: "02", title: "Стратегия", desc: "AI + команда строят план роста", icon: "Lightbulb" },
@@ -430,14 +430,14 @@ export default function Agent({ campaigns, feeds, onNavigate }: AgentProps) {
       </section>
 
       {/* CTA FOOTER */}
-      <section className="px-12 py-16 pb-20">
+      <section className="px-4 md:px-12 py-12 md:py-16 pb-16 md:pb-20">
         <div className="max-w-6xl">
-          <div className="rounded-3xl p-10 relative overflow-hidden"
+          <div className="rounded-3xl p-6 md:p-10 relative overflow-hidden"
             style={{ background: 'linear-gradient(135deg, hsl(185,100%,55%,0.12), hsl(260,80%,65%,0.12), hsl(320,80%,65%,0.12))' }}>
             <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full opacity-30 blur-3xl"
               style={{ background: 'radial-gradient(circle, hsl(185,100%,55%), transparent 60%)' }} />
 
-            <div className="relative grid grid-cols-2 gap-8 items-center">
+            <div className="relative grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 items-center">
               <div>
                 <div className="flex items-center gap-2 mb-4">
                   <div className="w-10 h-10 rounded-2xl flex items-center justify-center"
@@ -470,9 +470,9 @@ export default function Agent({ campaigns, feeds, onNavigate }: AgentProps) {
             </div>
           </div>
 
-          <div className="flex items-center justify-between mt-8 text-xs text-muted-foreground">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mt-6 md:mt-8 text-xs text-muted-foreground text-center md:text-left">
             <span>© {new Date().getFullYear()} ООО «МАТ-Лабс» · mat-ad.ru · Powered by polza.ai</span>
-            <div className="flex gap-4">
+            <div className="flex flex-wrap justify-center md:justify-end gap-3 md:gap-4">
               <span>hello@mat-ad.ru</span>
               <span>+7 (495) 123-45-67</span>
             </div>

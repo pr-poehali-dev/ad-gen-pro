@@ -131,18 +131,18 @@ export default function Insights({ campaigns, onNavigate }: InsightsProps) {
   };
 
   return (
-    <div className="p-8 animate-fade-in">
-      <div className="mb-8">
+    <div className="p-4 md:p-8 pt-16 md:pt-8 animate-fade-in">
+      <div className="mb-6 md:mb-8">
         <div className="flex items-center gap-2 text-xs text-neon-cyan mb-2 uppercase tracking-widest font-bold">
           <Icon name="Brain" size={13} />
           AI-инсайты обновляются в реальном времени
         </div>
-        <h1 className="font-heading text-2xl font-bold text-foreground">Инсайты и рекомендации</h1>
+        <h1 className="font-heading text-xl md:text-2xl font-bold text-foreground">Инсайты и рекомендации</h1>
         <p className="text-muted-foreground text-sm mt-1">AI-агент проанализировал ваши кампании и нашёл точки роста</p>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mb-6">
         <div className="glass rounded-2xl p-5">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-9 h-9 rounded-xl flex items-center justify-center"
@@ -193,7 +193,7 @@ export default function Insights({ campaigns, onNavigate }: InsightsProps) {
           visible.map(i => {
             const meta = severityMeta[i.severity];
             return (
-              <div key={i.id} className="glass rounded-2xl p-5 flex items-start gap-4 group">
+              <div key={i.id} className="glass rounded-2xl p-4 md:p-5 flex flex-col sm:flex-row items-start gap-3 md:gap-4 group">
                 <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
                   style={{ background: `${meta.color}20`, border: `1px solid ${meta.color}40` }}>
                   <Icon name={meta.icon} size={18} style={{ color: meta.color }} />
@@ -209,15 +209,15 @@ export default function Insights({ campaigns, onNavigate }: InsightsProps) {
                   <div className="text-sm font-semibold text-foreground mb-1">{i.title}</div>
                   <div className="text-xs text-muted-foreground leading-relaxed">{i.description}</div>
                 </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
+                <div className="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto">
                   <button onClick={() => handleAction(i)}
-                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-background transition-all hover:scale-105"
+                    className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-background transition-all hover:scale-105"
                     style={{ background: `linear-gradient(135deg, ${meta.color}, ${meta.color}dd)` }}>
                     <Icon name="ArrowRight" size={12} />
                     {i.action}
                   </button>
                   <button onClick={() => dismiss(i.id)} title="Отметить решённым"
-                    className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors opacity-0 group-hover:opacity-100">
+                    className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors sm:opacity-0 sm:group-hover:opacity-100">
                     <Icon name="Check" size={14} />
                   </button>
                 </div>
@@ -228,7 +228,7 @@ export default function Insights({ campaigns, onNavigate }: InsightsProps) {
       </div>
 
       {/* Bottom CTA */}
-      <div className="mt-6 glass rounded-2xl p-6 flex items-center justify-between">
+      <div className="mt-6 glass rounded-2xl p-5 md:p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-2xl flex items-center justify-center"
             style={{ background: 'linear-gradient(135deg, hsl(185,100%,55%), hsl(260,80%,65%))' }}>

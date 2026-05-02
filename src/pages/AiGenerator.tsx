@@ -94,20 +94,20 @@ export default function AiGenerator({ feeds, campaigns, setCampaigns }: AiGenera
   };
 
   return (
-    <div className="p-8 animate-fade-in">
-      <div className="flex items-center justify-between mb-8">
+    <div className="p-4 md:p-8 pt-16 md:pt-8 animate-fade-in">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6 md:mb-8">
         <div>
-          <h1 className="font-heading text-2xl font-bold text-foreground">ИИ-генерация объявлений</h1>
+          <h1 className="font-heading text-xl md:text-2xl font-bold text-foreground">ИИ-генерация объявлений</h1>
           <p className="text-muted-foreground text-sm mt-1">Создайте объявления за секунды на основе вашего каталога</p>
         </div>
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg glass text-xs">
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg glass text-xs self-start md:self-auto">
           <div className="w-2 h-2 rounded-full animate-pulse-slow bg-neon-violet" />
           <span className="text-muted-foreground">polza.ai · <strong className="text-foreground">GPT-4o</strong></span>
         </div>
       </div>
 
-      <div className="grid grid-cols-5 gap-6">
-        <div className="col-span-2 space-y-5">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        <div className="lg:col-span-2 space-y-5">
           <div className="glass rounded-2xl p-5">
             <h3 className="font-heading font-bold text-sm text-foreground mb-4">Тип объявления</h3>
             <div className="grid grid-cols-2 gap-2">
@@ -182,7 +182,7 @@ export default function AiGenerator({ feeds, campaigns, setCampaigns }: AiGenera
           </button>
         </div>
 
-        <div className="col-span-3">
+        <div className="lg:col-span-3">
           {error && (
             <div className="glass rounded-2xl p-5 border border-destructive/30 text-destructive text-sm mb-4">{error}</div>
           )}

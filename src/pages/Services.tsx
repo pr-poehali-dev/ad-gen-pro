@@ -149,13 +149,13 @@ export default function Services({ onNavigate }: ServicesProps) {
   };
 
   return (
-    <div className="p-8 animate-fade-in">
-      <div className="mb-8">
+    <div className="p-4 md:p-8 pt-16 md:pt-8 animate-fade-in">
+      <div className="mb-6 md:mb-8">
         <div className="flex items-center gap-2 text-xs text-neon-cyan mb-2 uppercase tracking-widest font-bold">
           <Icon name="Zap" size={13} />
           Digital-агентство полного цикла
         </div>
-        <h1 className="font-heading text-3xl font-bold text-foreground mb-2">
+        <h1 className="font-heading text-2xl md:text-3xl font-bold text-foreground mb-2">
           Услуги <span style={{ background: 'linear-gradient(135deg, hsl(185,100%,55%), hsl(260,80%,65%))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>mat-ad.ru</span>
         </h1>
         <p className="text-muted-foreground">
@@ -166,7 +166,7 @@ export default function Services({ onNavigate }: ServicesProps) {
       {/* Process timeline */}
       <div className="glass rounded-2xl p-5 mb-6">
         <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">Как мы работаем</div>
-        <div className="grid grid-cols-5 gap-2">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
           {[
             { n: "01", label: "Аудит", icon: "Search" },
             { n: "02", label: "Стратегия", icon: "Lightbulb" },
@@ -194,7 +194,7 @@ export default function Services({ onNavigate }: ServicesProps) {
       </div>
 
       {/* Services grid */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {services.map(s => {
           const isRequested = requestedIds.has(s.id);
           return (
@@ -255,9 +255,9 @@ export default function Services({ onNavigate }: ServicesProps) {
       <div className="mt-6 glass rounded-2xl p-6 relative overflow-hidden">
         <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full opacity-20"
           style={{ background: 'radial-gradient(circle, hsl(185,100%,55%), transparent 70%)' }} />
-        <div className="relative flex items-center justify-between">
+        <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl flex items-center justify-center"
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0"
               style={{ background: 'linear-gradient(135deg, hsl(185,100%,55%), hsl(260,80%,65%))' }}>
               <Icon name="Brain" size={28} className="text-background" />
             </div>

@@ -64,10 +64,10 @@ export default function Templates() {
   const favoritesCount = templates.filter(t => t.isFavorite).length;
 
   return (
-    <div className="p-8 animate-fade-in">
-      <div className="flex items-center justify-between mb-8">
+    <div className="p-4 md:p-8 pt-16 md:pt-8 animate-fade-in">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6 md:mb-8">
         <div>
-          <h1 className="font-heading text-2xl font-bold text-foreground">Библиотека шаблонов</h1>
+          <h1 className="font-heading text-xl md:text-2xl font-bold text-foreground">Библиотека шаблонов</h1>
           <p className="text-muted-foreground text-sm mt-1">Готовые объявления, проверенные тысячами рекламодателей</p>
         </div>
         <div className="flex items-center gap-3">
@@ -99,19 +99,19 @@ export default function Templates() {
             {f.label}
           </button>
         ))}
-        <div className="ml-auto relative">
+        <div className="md:ml-auto relative w-full md:w-auto">
           <Icon name="Search" size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <input
             type="text"
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Поиск шаблонов..."
-            className="pl-9 pr-4 py-2 rounded-xl bg-muted/50 border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-neon-cyan/50 w-52 transition-colors"
+            className="pl-9 pr-4 py-2 rounded-xl bg-muted/50 border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-neon-cyan/50 w-full md:w-52 transition-colors"
           />
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filtered.map(t => {
           const meta = categoryMeta[t.category];
           return (

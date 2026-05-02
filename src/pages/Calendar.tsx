@@ -108,15 +108,15 @@ export default function Calendar({ campaigns }: CalendarProps) {
   const sortedSchedule = [...schedule].sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
 
   return (
-    <div className="p-8 animate-fade-in">
-      <div className="flex items-center justify-between mb-8">
+    <div className="p-4 md:p-8 pt-16 md:pt-8 animate-fade-in">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6 md:mb-8">
         <div>
-          <h1 className="font-heading text-2xl font-bold text-foreground">Планировщик кампаний</h1>
+          <h1 className="font-heading text-xl md:text-2xl font-bold text-foreground">Планировщик кампаний</h1>
           <p className="text-muted-foreground text-sm mt-1">Запланируйте запуск, паузу и отчёты по датам</p>
         </div>
         <button
           onClick={() => openCreate()}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-background transition-all hover:scale-105"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-background transition-all hover:scale-105 self-start md:self-auto"
           style={{ background: 'linear-gradient(135deg, hsl(185,100%,55%), hsl(200,100%,50%))' }}
         >
           <Icon name="CalendarPlus" size={16} />
@@ -124,7 +124,7 @@ export default function Calendar({ campaigns }: CalendarProps) {
         </button>
       </div>
 
-      <div className="flex items-center justify-between mb-5">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-5">
         <div className="flex items-center gap-2">
           <button onClick={() => monthOffset(-1)} className="p-2 rounded-xl glass text-muted-foreground hover:text-foreground transition-colors">
             <Icon name="ChevronLeft" size={16} />
@@ -168,7 +168,9 @@ export default function Calendar({ campaigns }: CalendarProps) {
       </div>
 
       {view === "month" && (
-        <div className="glass rounded-2xl p-4">
+        <div className="glass rounded-2xl p-2 md:p-4">
+          <div className="overflow-x-auto">
+          <div className="min-w-[560px]">
           <div className="grid grid-cols-7 gap-1 mb-2">
             {weekDays.map(d => (
               <div key={d} className="text-center text-[11px] font-bold text-muted-foreground uppercase py-2">{d}</div>
@@ -207,11 +209,15 @@ export default function Calendar({ campaigns }: CalendarProps) {
               );
             })}
           </div>
+          </div>
+          </div>
         </div>
       )}
 
       {view === "week" && (
         <div className="glass rounded-2xl overflow-hidden">
+          <div className="overflow-x-auto">
+          <div className="min-w-[640px]">
           <div className="grid grid-cols-7 border-b border-border/50">
             {weekDates.map((d, i) => {
               const isToday = fmtDate(d) === today;
@@ -255,6 +261,8 @@ export default function Calendar({ campaigns }: CalendarProps) {
                 </div>
               );
             })}
+          </div>
+          </div>
           </div>
         </div>
       )}

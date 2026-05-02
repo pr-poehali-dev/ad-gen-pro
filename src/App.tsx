@@ -206,7 +206,7 @@ export default function App() {
           mobileOpen={mobileSidebarOpen}
           onCloseMobile={() => setMobileSidebarOpen(false)}
         />
-        <main className="flex-1 overflow-y-auto relative">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden relative w-full min-w-0">
           {/* Mobile hamburger */}
           <button
             onClick={() => setMobileSidebarOpen(true)}

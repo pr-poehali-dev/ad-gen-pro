@@ -73,17 +73,17 @@ export default function Settings() {
   const initials = (profile.firstName[0] || "") + (profile.lastName[0] || "");
 
   return (
-    <div className="p-8 animate-fade-in">
-      <div className="mb-8">
-        <h1 className="font-heading text-2xl font-bold text-foreground">Настройки</h1>
+    <div className="p-4 md:p-8 pt-16 md:pt-8 animate-fade-in">
+      <div className="mb-6 md:mb-8">
+        <h1 className="font-heading text-xl md:text-2xl font-bold text-foreground">Настройки</h1>
         <p className="text-muted-foreground text-sm mt-1">Управление аккаунтом, API и параметрами платформы</p>
       </div>
 
-      <div className="flex gap-6">
-        <div className="w-48 space-y-1 flex-shrink-0">
+      <div className="flex flex-col md:flex-row gap-4 md:gap-6">
+        <div className="md:w-48 flex md:flex-col gap-1 md:space-y-1 md:flex-shrink-0 overflow-x-auto md:overflow-visible -mx-4 md:mx-0 px-4 md:px-0 pb-2 md:pb-0">
           {tabs.map((t) => (
             <button key={t.id} onClick={() => setActiveTab(t.id)}
-              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+              className={`flex-shrink-0 md:w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all whitespace-nowrap ${
                 activeTab === t.id ? "text-background" : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
               }`}
               style={activeTab === t.id ? { background: 'linear-gradient(135deg, hsl(185,100%,55%), hsl(200,100%,50%))', boxShadow: '0 4px 15px rgba(0,220,230,0.25)' } : {}}>
@@ -93,7 +93,7 @@ export default function Settings() {
           ))}
         </div>
 
-        <div className="flex-1 space-y-5">
+        <div className="flex-1 min-w-0 space-y-5">
           {activeTab === "account" && (
             <div className="glass rounded-2xl p-6">
               <h3 className="font-heading font-bold text-foreground mb-5">Профиль</h3>
@@ -107,7 +107,7 @@ export default function Settings() {
                   <div className="text-sm text-muted-foreground">Администратор · Workspace Alpha</div>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {[
                   { label: "Имя", key: "firstName" as const },
                   { label: "Фамилия", key: "lastName" as const },
@@ -140,7 +140,7 @@ export default function Settings() {
               <div className="space-y-4">
                 {apiKeys.map((api) => (
                   <div key={api.id} className="p-4 rounded-xl bg-muted/30 border border-border/50">
-                    <div className="flex items-center gap-4">
+                    <div className="flex flex-wrap items-center gap-3 md:gap-4">
                       <span className="text-xl flex-shrink-0">{api.icon}</span>
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-medium text-foreground">{api.name}</div>
@@ -189,10 +189,10 @@ export default function Settings() {
 
           {activeTab === "tenants" && (
             <div className="glass rounded-2xl p-6">
-              <div className="flex items-center justify-between mb-5">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
                 <h3 className="font-heading font-bold text-foreground">Воркспейсы / Клиенты</h3>
                 <button onClick={() => setShowAddTenant(true)}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-background transition-all hover:scale-105"
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-background transition-all hover:scale-105 self-start sm:self-auto"
                   style={{ background: 'linear-gradient(135deg, hsl(185,100%,55%), hsl(200,100%,50%))' }}>
                   <Icon name="Plus" size={15} />
                   Добавить

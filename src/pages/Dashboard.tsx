@@ -37,10 +37,10 @@ export default function Dashboard({ campaigns, onNavigate }: DashboardProps) {
   ];
 
   return (
-    <div className="p-8 animate-fade-in">
-      <div className="flex items-center justify-between mb-8">
+    <div className="p-4 md:p-8 pt-16 md:pt-8 animate-fade-in">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6 md:mb-8">
         <div>
-          <h1 className="font-heading text-2xl font-bold text-foreground">Дашборд</h1>
+          <h1 className="font-heading text-xl md:text-2xl font-bold text-foreground">Дашборд</h1>
           <p className="text-muted-foreground text-sm mt-1">Обзор рекламных кампаний · Май 2026</p>
         </div>
         <div className="flex items-center gap-3">
@@ -55,7 +55,7 @@ export default function Dashboard({ campaigns, onNavigate }: DashboardProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-4 gap-5 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5 mb-6 md:mb-8">
         {metrics.map((m, i) => (
           <div key={i} className="glass glass-hover rounded-2xl p-5 relative overflow-hidden" style={{ animationDelay: `${i * 80}ms` }}>
             <div className={`absolute top-4 right-4 w-10 h-10 rounded-xl flex items-center justify-center ${m.grad}`} style={{ opacity: 0.9 }}>
@@ -75,8 +75,8 @@ export default function Dashboard({ campaigns, onNavigate }: DashboardProps) {
         ))}
       </div>
 
-      <div className="grid grid-cols-3 gap-5 mb-8">
-        <div className="col-span-2 glass rounded-2xl p-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5 mb-6 md:mb-8">
+        <div className="md:col-span-2 glass rounded-2xl p-4 md:p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h3 className="font-heading font-bold text-foreground">Клики по месяцам</h3>
@@ -156,7 +156,8 @@ export default function Dashboard({ campaigns, onNavigate }: DashboardProps) {
             <button onClick={() => onNavigate("campaigns")} className="text-neon-cyan hover:underline">Создать кампанию →</button>
           </div>
         ) : (
-          <table className="w-full">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[640px]">
             <thead>
               <tr className="border-b border-border/30">
                 {["Кампания", "Платформа", "Статус", "CTR", "Расход", "Показы"].map((h) => (
@@ -179,6 +180,7 @@ export default function Dashboard({ campaigns, onNavigate }: DashboardProps) {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>
