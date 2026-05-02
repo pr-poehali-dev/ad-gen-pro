@@ -1,14 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import Icon from "@/components/ui/icon";
-import { Campaign, Feed } from "@/App";
 import { useToast } from "@/hooks/use-toast";
 
 const AGENT_URL = "https://functions.poehali.dev/7c410ad0-0dcc-4514-91c0-69f9b4bee236";
-
-interface FloatingAgentProps {
-  campaigns: Campaign[];
-  feeds: Feed[];
-}
 
 interface Message {
   role: "user" | "assistant";
@@ -21,7 +15,7 @@ const QUICK = [
   "Идеи креативов на эту неделю",
 ];
 
-export default function FloatingAgent({ campaigns, feeds }: FloatingAgentProps) {
+export default function FloatingAgent() {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -51,7 +45,6 @@ export default function FloatingAgent({ campaigns, feeds }: FloatingAgentProps) 
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           messages: updated,
-          context: { campaigns, feeds },
         }),
       });
       const data = await resp.json();

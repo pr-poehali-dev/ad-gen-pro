@@ -1,19 +1,15 @@
-import { Campaign, Feed, Page } from "@/App";
+import { Page } from "@/App";
 import Icon from "@/components/ui/icon";
 import { useAuth } from "@/contexts/AuthContext";
-import type { SyncStatus } from "@/hooks/useCloudSync";
 
 interface SidebarProps {
   activePage: Page;
   onNavigate: (page: Page) => void;
-  campaigns: Campaign[];
-  feeds: Feed[];
   collapsed: boolean;
   onToggleCollapse: () => void;
   mobileOpen: boolean;
   onCloseMobile: () => void;
   onOpenAuth: () => void;
-  syncStatus: SyncStatus;
 }
 
 interface NavItem {
@@ -29,13 +25,11 @@ interface NavGroup {
 }
 
 export default function Sidebar({
-  activePage, onNavigate, campaigns, feeds,
+  activePage, onNavigate,
   collapsed, onToggleCollapse, mobileOpen, onCloseMobile,
-  onOpenAuth, syncStatus,
+  onOpenAuth,
 }: SidebarProps) {
   const { user, logout } = useAuth();
-  const activeCampaigns = campaigns.filter(c => c.status === "active").length;
-  const totalSpent = campaigns.reduce((s, c) => s + c.spent, 0);
 
   const initials = (user?.name || user?.email || "?")
     .split(/[ @.]/)
@@ -44,20 +38,11 @@ export default function Sidebar({
     .map(s => s[0]?.toUpperCase())
     .join("");
 
-  const syncMeta: Record<SyncStatus, { color: string; label: string; icon: string; pulse?: boolean }> = {
-    idle: { color: "hsl(220,10%,55%)", label: "Не синхронизирован", icon: "Cloud" },
-    loading: { color: "hsl(185,100%,55%)", label: "Загружаем данные...", icon: "Loader2", pulse: true },
-    saving: { color: "hsl(30,100%,60%)", label: "Сохраняем...", icon: "CloudUpload", pulse: true },
-    saved: { color: "hsl(145,70%,50%)", label: "Сохранено в облаке", icon: "CloudCheck" },
-    error: { color: "hsl(0,75%,60%)", label: "Ошибка синхронизации", icon: "CloudOff" },
-  };
-  const sm = syncMeta[syncStatus];
-
   const groups: NavGroup[] = [
     {
       label: "AI Агентство",
       items: [
-        { id: "agent", label: "AI-агент", icon: "Brain", badge: "AI" },
+        { id: "agent", label: "AI-агент", icon: "Brain", badge: null },
         { id: "insights", label: "Инсайты", icon: "Lightbulb", badge: null },
         { id: "services", label: "Услуги", icon: "Briefcase", badge: null },
       ],
@@ -67,15 +52,15 @@ export default function Sidebar({
       items: [
         { id: "ai", label: "Генератор", icon: "Sparkles", badge: null },
         { id: "templates", label: "Шаблоны", icon: "LayoutTemplate", badge: null },
-        { id: "feeds", label: "Фиды", icon: "Database", badge: feeds.length > 0 ? String(feeds.length) : null },
+        { id: "feeds", label: "Фиды", icon: "Database", badge: null },
       ],
     },
     {
       label: "Управление",
       items: [
-        { id: "campaigns", label: "Кампании", icon: "Megaphone", badge: activeCampaigns > 0 ? String(activeCampaigns) : null },
+        { id: "campaigns", label: "Кампании", icon: "Megaphone", badge: null },
         { id: "calendar", label: "Календарь", icon: "CalendarDays", badge: null },
-        { id: "automations", label: "Автоматизации", icon: "Bot", badge: "Live" },
+        { id: "automations", label: "Автоматизации", icon: "Bot", badge: null },
       ],
     },
     {
@@ -230,32 +215,6 @@ export default function Sidebar({
           ))}
         </nav>
 
-        {/* Spend block — only when expanded */}
-        {!collapsed && (
-          <div className="mx-3 mb-3 p-3 rounded-xl glass">
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">Расход</span>
-              <span className="text-[11px] font-bold text-foreground">₽ {totalSpent.toLocaleString("ru-RU")}</span>
-            </div>
-            <div className="h-1 bg-muted rounded-full overflow-hidden mb-1.5">
-              <div className="h-full rounded-full transition-all"
-                style={{
-                  width: `${Math.min((totalSpent / 200000) * 100, 100)}%`,
-                  background: 'linear-gradient(90deg, hsl(185,100%,55%), hsl(260,80%,65%))'
-                }} />
-            </div>
-            <div className="text-[10px] text-muted-foreground">{activeCampaigns} активных · {feeds.length} фидов</div>
-          </div>
-        )}
-
-        {/* Sync status (только если есть пользователь) */}
-        {user && !collapsed && (
-          <div className="mx-3 mb-2 px-3 py-2 rounded-lg glass flex items-center gap-2">
-            <Icon name={sm.icon} size={12} className={sm.pulse ? "animate-spin" : ""} style={{ color: sm.color }} fallback="Cloud" />
-            <span className="text-[10px] font-medium" style={{ color: sm.color }}>{sm.label}</span>
-          </div>
-        )}
-
         {/* Admin link — visible only for admins */}
         {user && (user.is_admin || user.role === "admin") && (
           <div className={`${collapsed ? "px-2" : "px-3"} pb-2`}>
@@ -280,7 +239,7 @@ export default function Sidebar({
                 style={{ background: 'linear-gradient(135deg, hsl(260,80%,65%), hsl(320,80%,65%))' }}>
                 {initials || "?"}
                 <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-background"
-                  style={{ background: sm.color }} />
+                  style={{ background: "hsl(145,70%,50%)" }} />
               </div>
               {!collapsed && (
                 <>

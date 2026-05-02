@@ -1,10 +1,8 @@
 import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
-import { Campaign, Feed, Page } from "@/App";
+import { Page } from "@/App";
 
 interface AgentProps {
-  campaigns: Campaign[];
-  feeds: Feed[];
   onNavigate: (page: Page) => void;
 }
 
@@ -106,11 +104,7 @@ function Counter({ to, suffix = "", prefix = "" }: { to: number; suffix?: string
   return <>{prefix}{v.toLocaleString("ru-RU")}{suffix}</>;
 }
 
-export default function Agent({ campaigns, feeds, onNavigate }: AgentProps) {
-  const totalSpent = campaigns.reduce((s, c) => s + c.spent, 0);
-  const activeCount = campaigns.filter(c => c.status === "active").length;
-  const productsCount = feeds.reduce((s, f) => s + f.products, 0);
-  const totalImpressions = campaigns.reduce((s, c) => s + c.impressions, 0);
+export default function Agent({ onNavigate }: AgentProps) {
 
   return (
     <div className="relative">
