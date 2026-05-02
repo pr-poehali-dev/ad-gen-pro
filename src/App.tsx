@@ -258,7 +258,7 @@ function MainApp() {
       case "calendar":
         return <Calendar />;
       case "export":
-        return <Export campaigns={campaigns} exportHistory={exportHistory} onExport={handleExport} />;
+        return <Export />;
       case "settings":
         return <Settings />;
     }
