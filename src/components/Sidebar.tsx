@@ -1,5 +1,7 @@
 import { Campaign, Feed, Page } from "@/App";
 import Icon from "@/components/ui/icon";
+import { useAuth } from "@/contexts/AuthContext";
+import type { SyncStatus } from "@/hooks/useCloudSync";
 
 interface SidebarProps {
   activePage: Page;
@@ -10,6 +12,8 @@ interface SidebarProps {
   onToggleCollapse: () => void;
   mobileOpen: boolean;
   onCloseMobile: () => void;
+  onOpenAuth: () => void;
+  syncStatus: SyncStatus;
 }
 
 interface NavItem {
@@ -27,9 +31,27 @@ interface NavGroup {
 export default function Sidebar({
   activePage, onNavigate, campaigns, feeds,
   collapsed, onToggleCollapse, mobileOpen, onCloseMobile,
+  onOpenAuth, syncStatus,
 }: SidebarProps) {
+  const { user, logout } = useAuth();
   const activeCampaigns = campaigns.filter(c => c.status === "active").length;
   const totalSpent = campaigns.reduce((s, c) => s + c.spent, 0);
+
+  const initials = (user?.name || user?.email || "?")
+    .split(/[ @.]/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map(s => s[0]?.toUpperCase())
+    .join("");
+
+  const syncMeta: Record<SyncStatus, { color: string; label: string; icon: string; pulse?: boolean }> = {
+    idle: { color: "hsl(220,10%,55%)", label: "Не синхронизирован", icon: "Cloud" },
+    loading: { color: "hsl(185,100%,55%)", label: "Загружаем данные...", icon: "Loader2", pulse: true },
+    saving: { color: "hsl(30,100%,60%)", label: "Сохраняем...", icon: "CloudUpload", pulse: true },
+    saved: { color: "hsl(145,70%,50%)", label: "Сохранено в облаке", icon: "CloudCheck" },
+    error: { color: "hsl(0,75%,60%)", label: "Ошибка синхронизации", icon: "CloudOff" },
+  };
+  const sm = syncMeta[syncStatus];
 
   const groups: NavGroup[] = [
     {
@@ -224,27 +246,51 @@ export default function Sidebar({
           </div>
         )}
 
-        {/* Profile */}
+        {/* Sync status (только если есть пользователь) */}
+        {user && !collapsed && (
+          <div className="mx-3 mb-2 px-3 py-2 rounded-lg glass flex items-center gap-2">
+            <Icon name={sm.icon} size={12} className={sm.pulse ? "animate-spin" : ""} style={{ color: sm.color }} fallback="Cloud" />
+            <span className="text-[10px] font-medium" style={{ color: sm.color }}>{sm.label}</span>
+          </div>
+        )}
+
+        {/* Profile / Auth */}
         <div className={`${collapsed ? "px-2" : "px-3"} pb-4`}>
-          <button
-            onClick={() => handleNav("agent")}
-            title={collapsed ? "Алексей Петров" : undefined}
-            className={`w-full flex items-center ${collapsed ? "justify-center p-2" : "gap-3 p-2.5"} rounded-xl glass cursor-pointer hover:bg-muted/10 transition-colors group`}>
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold text-background relative flex-shrink-0"
-              style={{ background: 'linear-gradient(135deg, hsl(260,80%,65%), hsl(320,80%,65%))' }}>
-              АП
-              <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-neon-green border-2 border-background" />
+          {user ? (
+            <div
+              title={collapsed ? user.name || user.email : undefined}
+              className={`w-full flex items-center ${collapsed ? "justify-center p-2" : "gap-3 p-2.5"} rounded-xl glass`}>
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-background relative flex-shrink-0"
+                style={{ background: 'linear-gradient(135deg, hsl(260,80%,65%), hsl(320,80%,65%))' }}>
+                {initials || "?"}
+                <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-background"
+                  style={{ background: sm.color }} />
+              </div>
+              {!collapsed && (
+                <>
+                  <div className="flex-1 min-w-0 text-left">
+                    <div className="text-xs font-medium text-foreground truncate">{user.name || "Пользователь"}</div>
+                    <div className="text-[10px] text-muted-foreground truncate">{user.email}</div>
+                  </div>
+                  <button
+                    onClick={() => logout()}
+                    title="Выйти"
+                    className="w-7 h-7 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors flex-shrink-0">
+                    <Icon name="LogOut" size={13} />
+                  </button>
+                </>
+              )}
             </div>
-            {!collapsed && (
-              <>
-                <div className="flex-1 min-w-0 text-left">
-                  <div className="text-xs font-medium text-foreground truncate">Алексей Петров</div>
-                  <div className="text-[10px] text-muted-foreground truncate">a.petrov@company.ru</div>
-                </div>
-                <Icon name="MessageSquare" size={13} className="text-muted-foreground group-hover:text-neon-cyan transition-colors" />
-              </>
-            )}
-          </button>
+          ) : (
+            <button
+              onClick={() => { onOpenAuth(); onCloseMobile(); }}
+              title={collapsed ? "Войти" : undefined}
+              className={`w-full flex items-center ${collapsed ? "justify-center p-2" : "gap-2 p-2.5"} rounded-xl text-sm font-bold text-background transition-all hover:scale-[1.02]`}
+              style={{ background: 'linear-gradient(135deg, hsl(185,100%,55%), hsl(260,80%,65%))', boxShadow: '0 4px 14px rgba(0, 220, 230, 0.25)' }}>
+              <Icon name="LogIn" size={14} className="text-background" />
+              {!collapsed && <span>Войти / Регистрация</span>}
+            </button>
+          )}
         </div>
       </aside>
     </>

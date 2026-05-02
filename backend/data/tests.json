@@ -1,0 +1,23 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Get без токена",
+      "method": "GET",
+      "path": "/?resource=all",
+      "expectedStatus": 401
+    },
+    {
+      "name": "Sync без токена",
+      "method": "POST",
+      "path": "/?resource=sync",
+      "body": {"campaigns": [], "feeds": []},
+      "expectedStatus": 401
+    }
+  ]
+}

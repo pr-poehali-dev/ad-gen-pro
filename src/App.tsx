@@ -18,7 +18,10 @@ import FloatingAgent from "./components/FloatingAgent";
 import Icon from "./components/ui/icon";
 import Breadcrumbs from "./components/Breadcrumbs";
 import LegalDisclaimer from "./components/LegalDisclaimer";
+import Auth from "./pages/Auth";
 import useSwipeGesture from "./hooks/useSwipeGesture";
+import { useCloudSync } from "./hooks/useCloudSync";
+import { useAuth } from "./contexts/AuthContext";
 
 const VALID_PAGES: Page[] = [
   "agent","dashboard","insights","feeds","ai","templates",
@@ -95,6 +98,8 @@ const initialExportHistory: ExportRecord[] = [
 ];
 
 export default function App() {
+  useAuth();
+  const [authOpen, setAuthOpen] = useState(false);
   const [activePage, setActivePageState] = useState<Page>(getPageFromPath);
 
   const setActivePage = (page: Page) => {
@@ -113,6 +118,11 @@ export default function App() {
   const [campaigns, setCampaigns] = useState<Campaign[]>(initialCampaigns);
   const [feeds, setFeeds] = useState<Feed[]>(initialFeeds);
   const [exportHistory, setExportHistory] = useState<ExportRecord[]>(initialExportHistory);
+
+  const sync = useCloudSync({
+    campaigns, feeds, exportHistory,
+    setCampaigns, setFeeds,
+  });
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     if (typeof window === "undefined") return false;
     return localStorage.getItem("adflow_sidebar_collapsed") === "1";
@@ -246,6 +256,8 @@ export default function App() {
           onToggleCollapse={toggleSidebarCollapse}
           mobileOpen={mobileSidebarOpen}
           onCloseMobile={() => setMobileSidebarOpen(false)}
+          onOpenAuth={() => setAuthOpen(true)}
+          syncStatus={sync.status}
         />
         <main className="flex-1 overflow-y-auto overflow-x-hidden relative w-full min-w-0">
           {/* Mobile hamburger */}
@@ -295,6 +307,7 @@ export default function App() {
           </footer>
         </main>
         {!isAgentPage && <FloatingAgent campaigns={campaigns} feeds={feeds} />}
+        {authOpen && <Auth onClose={() => setAuthOpen(false)} onSuccess={() => setAuthOpen(false)} />}
       </div>
     </TooltipProvider>
   );

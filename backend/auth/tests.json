@@ -1,0 +1,23 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Login без email",
+      "method": "POST",
+      "path": "/?action=login",
+      "body": {"email": "", "password": ""},
+      "expectedStatus": 400
+    },
+    {
+      "name": "Me без токена",
+      "method": "GET",
+      "path": "/?action=me",
+      "expectedStatus": 401
+    }
+  ]
+}
