@@ -240,9 +240,9 @@ function MainApp() {
       case "agent":
         return <Agent campaigns={campaigns} feeds={feeds} onNavigate={setActivePage} />;
       case "dashboard":
-        return <Dashboard campaigns={campaigns} onNavigate={setActivePage} />;
+        return <Dashboard onNavigate={setActivePage} />;
       case "insights":
-        return <Insights campaigns={campaigns} onNavigate={setActivePage} />;
+        return <Insights onNavigate={setActivePage} />;
       case "services":
         return <Services onNavigate={setActivePage} />;
       case "automations":
