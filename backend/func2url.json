@@ -1,4 +1,8 @@
 {
+  "yookassa-yookassa": "https://functions.poehali.dev/392ed557-8d88-4c35-bc4a-b024a2bc4e3f",
+  "yookassa-yookassa-webhook": "https://functions.poehali.dev/c9a911b4-01c2-4a97-85b9-64eed7365c38",
+  "auth": "https://functions.poehali.dev/e6567563-2137-43b9-91a0-65fc53ed8612",
+  "data": "https://functions.poehali.dev/0d4a0909-4bed-4bf0-b882-e156f1635c92",
   "ai-agent": "https://functions.poehali.dev/7c410ad0-0dcc-4514-91c0-69f9b4bee236",
   "generate-ads": "https://functions.poehali.dev/d58c6f7e-cbc9-48cc-95b4-6bdcacfbc57c"
 }
