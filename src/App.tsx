@@ -248,7 +248,7 @@ function MainApp() {
       case "automations":
         return <Automations />;
       case "feeds":
-        return <Feeds feeds={feeds} onDelete={handleDeleteFeed} onRefresh={handleRefreshFeed} onAdd={handleAddFeed} />;
+        return <Feeds />;
       case "ai":
         return <AiGenerator feeds={feeds} campaigns={campaigns} setCampaigns={setCampaigns} />;
       case "templates":
