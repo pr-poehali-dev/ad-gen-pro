@@ -16,6 +16,7 @@ import Insights from "./pages/Insights";
 import Sidebar from "./components/Sidebar";
 import FloatingAgent from "./components/FloatingAgent";
 import Icon from "./components/ui/icon";
+import useSwipeGesture from "./hooks/useSwipeGesture";
 
 export type Page =
   | "agent" | "dashboard" | "insights"
@@ -89,6 +90,18 @@ export default function App() {
     return localStorage.getItem("adflow_sidebar_collapsed") === "1";
   });
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
+  // Свайп от левого края → открыть меню; свайп влево по открытому меню → закрыть
+  useSwipeGesture({
+    enabled: !mobileSidebarOpen,
+    edgeOnly: true,
+    edgeWidth: 30,
+    onSwipeRight: () => setMobileSidebarOpen(true),
+  });
+  useSwipeGesture({
+    enabled: mobileSidebarOpen,
+    onSwipeLeft: () => setMobileSidebarOpen(false),
+  });
 
   const toggleSidebarCollapse = () => {
     setSidebarCollapsed(prev => {
