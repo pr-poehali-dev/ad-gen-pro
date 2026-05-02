@@ -256,6 +256,20 @@ export default function Sidebar({
           </div>
         )}
 
+        {/* Admin link — visible only for admins */}
+        {user && (user.is_admin || user.role === "admin") && (
+          <div className={`${collapsed ? "px-2" : "px-3"} pb-2`}>
+            <a
+              href="/admin"
+              title={collapsed ? "Админка" : undefined}
+              className={`w-full flex items-center ${collapsed ? "justify-center p-2" : "gap-2 p-2.5"} rounded-xl text-sm font-bold text-background transition-all hover:scale-[1.02]`}
+              style={{ background: 'linear-gradient(135deg, hsl(0,75%,60%), hsl(30,100%,55%))', boxShadow: '0 4px 14px rgba(220, 50, 50, 0.25)' }}>
+              <Icon name="Shield" size={14} className="text-background" />
+              {!collapsed && <span>Супер-Офис (админ)</span>}
+            </a>
+          </div>
+        )}
+
         {/* Profile / Auth */}
         <div className={`${collapsed ? "px-2" : "px-3"} pb-4`}>
           {user ? (
