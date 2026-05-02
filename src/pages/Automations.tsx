@@ -15,14 +15,14 @@ interface Automation {
 }
 
 const initialAutomations: Automation[] = [
-  { id: 1, name: "Автопауза при перерасходе", description: "Останавливает кампанию, если CPL вырос на 30% от среднего за неделю", category: "monitoring", icon: "Pause", color: "hsl(0,75%,60%)", enabled: true, triggers: 14, saved: "₽ 47 200" },
-  { id: 2, name: "Оптимизация ставок ИИ", description: "Каждый час корректирует ставки по Bid Modifier для максимизации CTR", category: "optimization", icon: "TrendingUp", color: "hsl(185,100%,55%)", enabled: true, triggers: 524, saved: "₽ 89 400" },
-  { id: 3, name: "A/B-тесты заголовков", description: "Запускает 4 варианта заголовков параллельно, оставляет победителя", category: "creative", icon: "Split", color: "hsl(260,80%,65%)", enabled: true, triggers: 38, saved: "+24% CTR" },
-  { id: 4, name: "Алерты в Telegram", description: "Шлёт уведомление в чат при падении CTR ниже 1.5% или CPC выше 50 ₽", category: "monitoring", icon: "Bell", color: "hsl(30,100%,60%)", enabled: true, triggers: 7, saved: "—" },
-  { id: 5, name: "Ретаргетинг по корзинам", description: "Каждый день обновляет аудиторию из CRM и запускает ретаргет", category: "optimization", icon: "RotateCcw", color: "hsl(145,70%,50%)", enabled: false, triggers: 0, saved: "—" },
-  { id: 6, name: "Еженедельные отчёты", description: "По понедельникам в 10:00 присылает PDF-отчёт по всем активным кампаниям", category: "reporting", icon: "FileText", color: "hsl(200,100%,55%)", enabled: true, triggers: 12, saved: "—" },
-  { id: 7, name: "Авто-генерация креативов", description: "ИИ создаёт новые объявления каждые 7 дней на основе топовых запросов", category: "creative", icon: "Sparkles", color: "hsl(320,80%,65%)", enabled: false, triggers: 0, saved: "—" },
-  { id: 8, name: "Минус-слова из поиска", description: "Парсит поисковые запросы и автоматически добавляет нерелевантные в минус", category: "optimization", icon: "Filter", color: "hsl(280,80%,65%)", enabled: true, triggers: 142, saved: "₽ 28 600" },
+  { id: 1, name: "Уведомление о перерасходе", description: "Отправляет вам уведомление, если CPL отклоняется от заданного порога. Решение о паузе принимаете вы.", category: "monitoring", icon: "Pause", color: "hsl(0,75%,60%)", enabled: true, triggers: 14, saved: "уведомлений" },
+  { id: 2, name: "Подсказки по ставкам", description: "Сервис предлагает корректировки ставок по заданным правилам. Применение — на ваше усмотрение.", category: "optimization", icon: "TrendingUp", color: "hsl(185,100%,55%)", enabled: true, triggers: 524, saved: "подсказок" },
+  { id: 3, name: "A/B-варианты заголовков", description: "Готовит несколько вариантов заголовков и сводку по их статистике для вашего решения.", category: "creative", icon: "Split", color: "hsl(260,80%,65%)", enabled: true, triggers: 38, saved: "сравнений" },
+  { id: 4, name: "Алерты в Telegram", description: "Уведомление в чат при достижении заданных вами порогов по CTR или CPC.", category: "monitoring", icon: "Bell", color: "hsl(30,100%,60%)", enabled: true, triggers: 7, saved: "—" },
+  { id: 5, name: "Подготовка ретаргета", description: "Обновляет шаблон аудитории из CRM. Запуск ретаргета вы выполняете самостоятельно.", category: "optimization", icon: "RotateCcw", color: "hsl(145,70%,50%)", enabled: false, triggers: 0, saved: "—" },
+  { id: 6, name: "Еженедельные отчёты", description: "По понедельникам в 10:00 формирует PDF-отчёт по подключённым к сервису данным.", category: "reporting", icon: "FileText", color: "hsl(200,100%,55%)", enabled: true, triggers: 12, saved: "—" },
+  { id: 7, name: "Подготовка креативов", description: "Сервис формирует черновики новых объявлений по топовым запросам — для вашей проверки.", category: "creative", icon: "Sparkles", color: "hsl(320,80%,65%)", enabled: false, triggers: 0, saved: "—" },
+  { id: 8, name: "Сбор минус-слов", description: "Анализирует поисковые запросы и предлагает кандидатов в минус-слова на ваше согласование.", category: "optimization", icon: "Filter", color: "hsl(280,80%,65%)", enabled: true, triggers: 142, saved: "кандидатов" },
 ];
 
 const categoryMeta = {
@@ -57,10 +57,10 @@ export default function Automations() {
         <div>
           <div className="flex items-center gap-2 text-xs text-neon-cyan mb-2 uppercase tracking-widest font-bold">
             <Icon name="Bot" size={13} />
-            AI-автоматизации работают 24/7
+            Сценарии и подсказки сервиса
           </div>
-          <h1 className="font-heading text-xl md:text-2xl font-bold text-foreground">Автоматизация процессов</h1>
-          <p className="text-muted-foreground text-sm mt-1">Включите сценарии — AI-агент сам управляет вашими кампаниями</p>
+          <h1 className="font-heading text-xl md:text-2xl font-bold text-foreground">Автоматизация рутины</h1>
+          <p className="text-muted-foreground text-sm mt-1">Включите сценарии — сервис будет помогать подсказками и уведомлениями. Решения и действия по кампаниям остаются за пользователем.</p>
         </div>
       </div>
 

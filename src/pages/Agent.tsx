@@ -10,82 +10,80 @@ interface AgentProps {
 
 const cases = [
   {
-    client: "GadgetMarket",
-    industry: "E-commerce · Электроника",
+    client: "Магазин электроники",
+    industry: "E-commerce · Пример использования",
     color: "hsl(185,100%,55%)",
     accent: "linear-gradient(135deg, hsl(185,100%,55%), hsl(200,100%,50%))",
-    challenge: "CPA вырос на 40% за квартал, нужен срочный pivot",
-    solution: "AI-генерация 240 объявлений + автооптимизация ставок 24/7",
+    challenge: "Рутина при создании большого числа объявлений и ручная корректировка ставок",
+    solution: "Сервис помог сгенерировать варианты текстов и подготовить структуру кампаний",
     metrics: [
-      { label: "ROAS", value: "+340%", up: true },
-      { label: "CPA", value: "−52%", up: true },
-      { label: "Заказов", value: "12.8K", up: true },
+      { label: "Вариантов текстов", value: "240", up: true },
+      { label: "Время подготовки", value: "−70%", up: true },
+      { label: "Каналов", value: "3", up: true },
     ],
-    period: "за 3 месяца",
+    period: "пример использования сервиса",
   },
   {
-    client: "BeautyClub",
-    industry: "Beauty · Подписочный сервис",
+    client: "Подписочный сервис",
+    industry: "Beauty · Пример использования",
     color: "hsl(320,80%,65%)",
     accent: "linear-gradient(135deg, hsl(320,80%,65%), hsl(0,75%,60%))",
-    challenge: "Высокий churn в первый месяц, низкая reactivation",
-    solution: "Email-цепочки + ретаргет с динамическими креативами",
+    challenge: "Долгая ручная подготовка email-цепочек и креативов для ретаргета",
+    solution: "Подготовка контента, шаблонов и сегментов в одном интерфейсе",
     metrics: [
-      { label: "Retention 30d", value: "+78%", up: true },
-      { label: "LTV", value: "₽ 8.4K", up: true },
-      { label: "CR в подписку", value: "5.2%", up: true },
+      { label: "Шаблонов писем", value: "12", up: true },
+      { label: "Сегментов", value: "8", up: true },
+      { label: "Время на запуск", value: "−60%", up: true },
     ],
-    period: "за 6 недель",
+    period: "пример использования сервиса",
   },
   {
-    client: "ProTools.ru",
-    industry: "B2B · Промышленный инструмент",
+    client: "Производитель инструмента",
+    industry: "B2B · Пример использования",
     color: "hsl(30,100%,60%)",
     accent: "linear-gradient(135deg, hsl(30,100%,60%), hsl(15,100%,60%))",
-    challenge: "Длинный цикл сделки, низкое качество лидов",
-    solution: "SEO-стратегия + контекст по low-funnel запросам",
+    challenge: "Сложно одновременно вести SEO-задачи и контекст по low-funnel запросам",
+    solution: "Сервис помогает структурировать задачи, шаблоны и фиды в одном месте",
     metrics: [
-      { label: "Лидов/мес", value: "+420", up: true },
-      { label: "MQL→SQL", value: "62%", up: true },
-      { label: "Cost per lead", value: "−38%", up: true },
+      { label: "Шаблонов задач", value: "30+", up: true },
+      { label: "Фидов в работе", value: "5", up: true },
+      { label: "Каналов", value: "4", up: true },
     ],
-    period: "за 4 месяца",
+    period: "пример использования сервиса",
   },
 ];
 
 const testimonials = [
   {
-    name: "Олег К.",
-    role: "Founder, GadgetMarket",
-    text: "mat-ad.ru знает наши товары лучше нашего же маркетолога. ROAS вырос в 3.4 раза. Это как нанять senior-команду за цену стажёра.",
-    avatar: "О",
+    name: "Маркетолог",
+    role: "Интернет-магазин",
+    text: "Сервис помогает быстрее готовить варианты объявлений — экономит время на рутине.",
+    avatar: "М",
     accent: "hsl(185,100%,55%)",
   },
   {
-    name: "Мария Л.",
-    role: "CMO, BeautyClub",
-    text: "Раньше создание 50 креативов занимало неделю. Теперь — час. И конверсия выше: AI попадает в боли точнее редакторов.",
-    avatar: "М",
+    name: "Специалист по рекламе",
+    role: "Агентство",
+    text: "Раньше подготовка большой партии креативов занимала несколько дней — теперь намного быстрее.",
+    avatar: "С",
     accent: "hsl(320,80%,65%)",
   },
   {
-    name: "Денис В.",
-    role: "Head of Growth, ProTools",
-    text: "Интегрировали за 2 дня. Через месяц — поток квалифицированных лидов и прозрачная аналитика по всем каналам.",
-    avatar: "Д",
+    name: "Менеджер проекта",
+    role: "B2B-компания",
+    text: "Удобно держать фиды, шаблоны и задачи в одном интерфейсе. Решение о запуске мы принимаем сами.",
+    avatar: "П",
     accent: "hsl(30,100%,60%)",
   },
 ];
 
-const clientLogos = ["Selectel", "Ozon", "AliExpress", "X5 Group", "Yandex", "VK", "Skyeng", "Gloria Jeans"];
-
 const expertise = [
-  { icon: "MousePointerClick", title: "Контекст", desc: "Яндекс · Google", color: "hsl(185,100%,55%)" },
-  { icon: "Target", title: "Таргет", desc: "VK · MyTarget · TikTok", color: "hsl(260,80%,65%)" },
-  { icon: "Search", title: "SEO", desc: "ТОП-10 за 3 месяца", color: "hsl(145,70%,50%)" },
-  { icon: "Mail", title: "Email", desc: "Автоворонки + CRM", color: "hsl(30,100%,60%)" },
-  { icon: "Sparkles", title: "Креативы", desc: "AI + дизайнеры", color: "hsl(320,80%,65%)" },
-  { icon: "LineChart", title: "Аналитика", desc: "ROMI прозрачен", color: "hsl(200,100%,55%)" },
+  { icon: "MousePointerClick", title: "Контекст", desc: "Подготовка для Яндекс · Google", color: "hsl(185,100%,55%)" },
+  { icon: "Target", title: "Таргет", desc: "Шаблоны для VK · MyTarget", color: "hsl(260,80%,65%)" },
+  { icon: "Search", title: "SEO", desc: "Помощь в структуре контента", color: "hsl(145,70%,50%)" },
+  { icon: "Mail", title: "Email", desc: "Шаблоны автоворонок", color: "hsl(30,100%,60%)" },
+  { icon: "Sparkles", title: "Креативы", desc: "ИИ-генерация вариантов", color: "hsl(320,80%,65%)" },
+  { icon: "LineChart", title: "Аналитика", desc: "Сводка по вашим данным", color: "hsl(200,100%,55%)" },
 ];
 
 const useCounter = (target: number, duration = 1500) => {
@@ -131,19 +129,19 @@ export default function Agent({ campaigns, feeds, onNavigate }: AgentProps) {
         <div className="max-w-6xl">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass mb-5 md:mb-6">
             <div className="w-2 h-2 rounded-full bg-neon-green animate-pulse-slow" />
-            <span className="text-xs font-medium text-foreground">Online · 50+ клиентов · 7 лет на рынке</span>
+            <span className="text-xs font-medium text-foreground">Сервис для специалистов по рекламе</span>
           </div>
 
           <h1 className="font-heading font-bold text-foreground leading-[1.05] md:leading-[0.95] tracking-tight" style={{ fontSize: "clamp(2rem, 5.5vw, 5rem)" }}>
-            Digital-агентство,<br />
+            Сервис, который<br />
             <span style={{ background: 'linear-gradient(135deg, hsl(185,100%,55%), hsl(260,80%,65%), hsl(320,80%,65%))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              где маркетинг делает ИИ
+              помогает настраивать рекламу
             </span>
           </h1>
 
           <p className="text-base md:text-xl text-muted-foreground mt-5 md:mt-6 max-w-2xl leading-relaxed">
-            От идеи до запуска кампании — за 48 часов. Команда из 15 маркетологов и AI-агент работают 24/7,
-            пока вы спите.
+            ИИ-генерация вариантов объявлений, шаблоны, работа с фидами и автоматизация рутины.
+            Сервис помогает специалисту, но не размещает рекламу самостоятельно — все решения принимает пользователь.
           </p>
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-6 md:mt-8">
@@ -151,22 +149,22 @@ export default function Agent({ campaigns, feeds, onNavigate }: AgentProps) {
               className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl text-sm font-bold text-background transition-all hover:scale-105"
               style={{ background: 'linear-gradient(135deg, hsl(185,100%,55%), hsl(260,80%,65%))', boxShadow: '0 10px 40px rgba(0, 220, 230, 0.3)' }}>
               <Icon name="Rocket" size={18} />
-              Получить аудит бесплатно
+              Посмотреть тарифы
             </button>
             <button onClick={() => onNavigate("ai")}
               className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl glass text-sm font-bold text-foreground hover:bg-muted/30 transition-colors">
               <Icon name="PlayCircle" size={18} />
-              Демо за 2 минуты
+              Попробовать ИИ-генератор
             </button>
           </div>
 
-          {/* Live ticker stats */}
+          {/* Live ticker stats — характеристики сервиса (не результаты рекламы) */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mt-8 md:mt-12">
             {[
-              { label: "Управляемый бюджет", value: <Counter to={487} suffix=" М ₽" />, color: "hsl(185,100%,55%)" },
-              { label: "Кампаний запущено", value: <Counter to={12450} />, color: "hsl(260,80%,65%)" },
-              { label: "Средний рост ROAS", value: <Counter to={340} suffix="%" prefix="+" />, color: "hsl(145,70%,50%)" },
-              { label: "Часов экономии/нед", value: <Counter to={28} />, color: "hsl(30,100%,60%)" },
+              { label: "Шаблонов объявлений", value: <Counter to={120} suffix="+" />, color: "hsl(185,100%,55%)" },
+              { label: "Поддерживаемых форматов", value: <Counter to={9} />, color: "hsl(260,80%,65%)" },
+              { label: "Языков ИИ-генерации", value: <Counter to={12} />, color: "hsl(145,70%,50%)" },
+              { label: "Размер фида, до", value: <Counter to={50} suffix=" МБ" />, color: "hsl(30,100%,60%)" },
             ].map((s, i) => (
               <div key={i} className="glass rounded-2xl p-5 relative overflow-hidden group hover:scale-[1.02] transition-transform">
                 <div className="absolute top-0 left-0 w-full h-[2px]" style={{ background: s.color, opacity: 0.6 }} />
@@ -200,36 +198,25 @@ export default function Agent({ campaigns, feeds, onNavigate }: AgentProps) {
         </div>
       </section>
 
-      {/* CLIENTS LOGOS */}
-      <section className="px-4 md:px-12 py-8 border-y border-border/20">
-        <div className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold text-center mb-5">
-          Нам доверяют
-        </div>
-        <div className="flex items-center justify-center gap-x-12 gap-y-4 flex-wrap">
-          {clientLogos.map((logo, i) => (
-            <div key={i} className="font-heading font-bold text-muted-foreground/60 hover:text-foreground transition-colors text-lg tracking-tight">
-              {logo}
-            </div>
-          ))}
-        </div>
-      </section>
-
       {/* CASE STUDIES */}
       <section className="px-4 md:px-12 py-12 md:py-16">
         <div className="max-w-6xl">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-8 md:mb-10">
             <div>
               <div className="flex items-center gap-2 text-xs text-neon-cyan mb-2 uppercase tracking-widest font-bold">
-                <Icon name="Trophy" size={13} />
-                Реальные результаты
+                <Icon name="Lightbulb" size={13} />
+                Примеры использования
               </div>
               <h2 className="font-heading font-bold text-foreground leading-tight" style={{ fontSize: "clamp(1.8rem, 3vw, 2.5rem)" }}>
-                Кейсы наших клиентов
+                Как сервисом пользуются специалисты
               </h2>
+              <p className="text-xs text-muted-foreground mt-2 max-w-xl">
+                Гипотетические сценарии. Цифры приведены как ориентир по объёму работы внутри сервиса и не являются гарантией результатов рекламных кампаний.
+              </p>
             </div>
             <button onClick={() => onNavigate("services")}
               className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors">
-              Все кейсы <Icon name="ArrowRight" size={14} />
+              Все возможности <Icon name="ArrowRight" size={14} />
             </button>
           </div>
 
@@ -409,11 +396,11 @@ export default function Agent({ campaigns, feeds, onNavigate }: AgentProps) {
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
             {[
-              { n: "01", title: "Аудит", desc: "Анализ ниши, конкурентов, ваших данных", icon: "Search" },
-              { n: "02", title: "Стратегия", desc: "AI + команда строят план роста", icon: "Lightbulb" },
-              { n: "03", title: "Запуск", desc: "Креативы и кампании за 48 часов", icon: "Rocket" },
-              { n: "04", title: "Оптимизация", desc: "Автоматизации работают 24/7", icon: "Settings2" },
-              { n: "05", title: "Рост", desc: "Прозрачные отчёты и масштабирование", icon: "TrendingUp" },
+              { n: "01", title: "Подключение", desc: "Регистрация и загрузка ваших фидов", icon: "Search" },
+              { n: "02", title: "Шаблоны", desc: "Выбор подходящих шаблонов и сценариев", icon: "Lightbulb" },
+              { n: "03", title: "Подготовка", desc: "ИИ помогает создать варианты объявлений", icon: "Rocket" },
+              { n: "04", title: "Проверка", desc: "Вы проверяете и редактируете материалы", icon: "Settings2" },
+              { n: "05", title: "Размещение", desc: "Вы самостоятельно размещаете в рекламных системах", icon: "TrendingUp" },
             ].map((s, i) => (
               <div key={i} className="glass rounded-2xl p-5 relative">
                 <div className="text-[10px] font-bold text-neon-cyan tracking-widest mb-3">{s.n}</div>
@@ -447,10 +434,10 @@ export default function Agent({ campaigns, feeds, onNavigate }: AgentProps) {
                   <span className="text-[10px] uppercase tracking-widest font-bold text-neon-cyan">mat-ad.ru AI · 24/7</span>
                 </div>
                 <h3 className="font-heading font-bold text-foreground leading-tight mb-3" style={{ fontSize: "clamp(1.6rem, 3vw, 2.5rem)" }}>
-                  Готовы расти быстрее?
+                  Хотите попробовать?
                 </h3>
                 <p className="text-sm text-muted-foreground max-w-md">
-                  Бесплатный аудит за 24 часа. Покажем, где вы теряете деньги и как удвоить ROI с AI-агентом.
+                  Зарегистрируйтесь и оцените возможности сервиса для подготовки рекламных материалов. Сервис не размещает рекламу самостоятельно — итоговые решения принимает пользователь.
                 </p>
               </div>
 
@@ -459,22 +446,29 @@ export default function Agent({ campaigns, feeds, onNavigate }: AgentProps) {
                   className="flex items-center justify-center gap-2 px-6 py-4 rounded-2xl text-base font-bold text-background transition-all hover:scale-[1.02]"
                   style={{ background: 'linear-gradient(135deg, hsl(185,100%,55%), hsl(260,80%,65%))', boxShadow: '0 10px 40px rgba(0, 220, 230, 0.35)' }}>
                   <Icon name="Sparkles" size={18} />
-                  Получить бесплатный аудит
+                  Посмотреть тарифы
                 </button>
                 <button onClick={() => onNavigate("ai")}
                   className="flex items-center justify-center gap-2 px-6 py-4 rounded-2xl glass text-sm font-medium text-foreground hover:bg-muted/30 transition-colors">
-                  Или попробуйте AI-генератор объявлений
+                  Или попробуйте ИИ-генератор объявлений
                   <Icon name="ArrowRight" size={14} />
                 </button>
               </div>
             </div>
           </div>
 
+          <div className="mt-8 md:mt-10 p-4 md:p-5 rounded-2xl border border-border/40 bg-muted/20 text-[11px] md:text-xs text-muted-foreground leading-relaxed">
+            <strong className="text-foreground/80">Важно.</strong> Сервис mat-ad.ru является программным инструментом, который помогает специалистам готовить рекламные материалы и автоматизировать рутинные задачи.
+            Сервис не оказывает рекламные услуги конечным пользователям, не размещает рекламу самостоятельно и не гарантирует достижения каких-либо коммерческих результатов рекламных кампаний (рост продаж, ROAS, CTR, позиции в поисковой выдаче и т.п.).
+            Все приведённые на сайте показатели и описания — справочные. Ответственность за соответствие размещаемой рекламы Федеральному закону «О рекламе» № 38-ФЗ, требованиям маркировки рекламы и иным нормативным актам РФ несёт рекламодатель.
+            Используя сервис, вы соглашаетесь с пользовательским соглашением и политикой обработки персональных данных.
+          </div>
+
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mt-6 md:mt-8 text-xs text-muted-foreground text-center md:text-left">
-            <span>© {new Date().getFullYear()} ООО «МАТ-Лабс» · mat-ad.ru · Powered by polza.ai</span>
+            <span>© {new Date().getFullYear()} ООО «МАТ-Лабс» · mat-ad.ru</span>
             <div className="flex flex-wrap justify-center md:justify-end gap-3 md:gap-4">
+              <span>ИНН / ОГРН: указаны в реквизитах</span>
               <span>hello@mat-ad.ru</span>
-              <span>+7 (495) 123-45-67</span>
             </div>
           </div>
         </div>

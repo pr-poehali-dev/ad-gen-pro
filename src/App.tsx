@@ -17,6 +17,7 @@ import Sidebar from "./components/Sidebar";
 import FloatingAgent from "./components/FloatingAgent";
 import Icon from "./components/ui/icon";
 import Breadcrumbs from "./components/Breadcrumbs";
+import LegalDisclaimer from "./components/LegalDisclaimer";
 import useSwipeGesture from "./hooks/useSwipeGesture";
 
 const VALID_PAGES: Page[] = [
@@ -273,7 +274,9 @@ export default function App() {
           {isAgentPage && <Breadcrumbs page={activePage} onNavigate={setActivePage} />}
           <div className={`relative z-10 ${!isAgentPage ? "[&>div]:pt-2 [&>div]:md:pt-2" : ""}`}>{renderPage()}</div>
 
-          <footer className="relative z-10 mt-8 px-6 py-5 border-t border-border/40">
+          <LegalDisclaimer />
+
+          <footer className="relative z-10 mt-2 px-6 py-5 border-t border-border/40">
             <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3 text-center md:text-left">
               <div className="flex items-center gap-2.5 text-xs text-muted-foreground">
                 <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
