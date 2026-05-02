@@ -226,6 +226,24 @@ export default function App() {
             </div>
           )}
           <div className="relative z-10">{renderPage()}</div>
+
+          <footer className="relative z-10 mt-8 px-6 py-5 border-t border-border/40">
+            <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3 text-center md:text-left">
+              <div className="flex items-center gap-2.5 text-xs text-muted-foreground">
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+                  style={{ background: 'linear-gradient(135deg, hsl(185,100%,55%), hsl(260,80%,65%))' }}>
+                  <Icon name="Sparkles" size={13} className="text-background" />
+                </div>
+                <span>
+                  <span className="text-foreground font-medium">mat-ad.ru</span> — интеллектуальный продукт компании{" "}
+                  <span className="text-foreground font-semibold">ООО «МАТ-Лабс»</span>
+                </span>
+              </div>
+              <div className="text-[11px] text-muted-foreground/70">
+                © {new Date().getFullYear()} ООО «МАТ-Лабс». Все права защищены.
+              </div>
+            </div>
+          </footer>
         </main>
         {!isAgentPage && <FloatingAgent campaigns={campaigns} feeds={feeds} />}
       </div>
