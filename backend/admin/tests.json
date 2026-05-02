@@ -18,6 +18,24 @@
       "path": "/?action=unknown",
       "headers": {"X-Auth-Token": "invalid-token"},
       "expectedStatus": 403
+    },
+    {
+      "name": "submit_lead без имени — ошибка",
+      "method": "POST",
+      "path": "/?action=submit_lead",
+      "body": {"phone": "+79991234567"},
+      "expectedStatus": 200,
+      "expectedBody": {"error": "string"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "submit_lead с UTM — ок",
+      "method": "POST",
+      "path": "/?action=submit_lead",
+      "body": {"name": "Тест UTM", "phone": "+79990000000", "service": "SEO", "utm": {"utm_source": "yandex", "utm_campaign": "seo_test", "utm_term": "продвижение сайта"}},
+      "expectedStatus": 200,
+      "expectedBody": {"ok": true},
+      "bodyMatcher": "partial"
     }
   ]
 }

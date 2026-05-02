@@ -69,6 +69,13 @@ export default function AdminLeads() {
                     className="bg-muted/20 hover:bg-muted/40 cursor-pointer rounded-lg p-2.5 border border-border/30 transition-colors">
                     <div className="font-semibold text-xs text-foreground truncate">{l.name}</div>
                     {l.service && <div className="text-[10px] text-muted-foreground truncate mt-0.5">{l.service}</div>}
+                    {(l.utm_source || l.yclid || l.gclid) && (
+                      <div className="text-[9px] text-neon-cyan font-mono truncate mt-0.5 flex items-center gap-0.5">
+                        <Icon name="Megaphone" size={9} />
+                        {l.utm_source || (l.yclid ? "yandex" : l.gclid ? "google" : "")}
+                        {l.utm_campaign && ` / ${l.utm_campaign}`}
+                      </div>
+                    )}
                     <div className="flex items-center justify-between mt-1.5">
                       <span className="text-[10px] text-muted-foreground">{new Date(l.created_at).toLocaleDateString("ru-RU")}</span>
                       {l.amount ? <span className="text-[10px] font-bold text-neon-green">{l.amount.toLocaleString("ru-RU")} ₽</span> : null}
@@ -126,6 +133,24 @@ function LeadModal({ lead, onClose, onMove, onSave }: { lead: AdminLead; onClose
           <div className="mb-3">
             <div className="text-[10px] uppercase text-muted-foreground tracking-wider mb-0.5">Комментарий клиента</div>
             <div className="text-sm text-foreground">{lead.comment}</div>
+          </div>
+        )}
+
+        {(lead.utm_source || lead.utm_campaign || lead.utm_term || lead.yclid || lead.gclid || lead.referrer) && (
+          <div className="mb-3 p-2.5 rounded-lg bg-muted/20 border border-border/30">
+            <div className="text-[10px] uppercase text-neon-cyan tracking-wider mb-1.5 flex items-center gap-1">
+              <Icon name="Megaphone" size={11} /> Источник трафика
+            </div>
+            <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[11px]">
+              {lead.utm_source && <div><span className="text-muted-foreground">source:</span> <span className="text-foreground font-mono">{lead.utm_source}</span></div>}
+              {lead.utm_medium && <div><span className="text-muted-foreground">medium:</span> <span className="text-foreground font-mono">{lead.utm_medium}</span></div>}
+              {lead.utm_campaign && <div className="col-span-2"><span className="text-muted-foreground">кампания:</span> <span className="text-foreground font-mono">{lead.utm_campaign}</span></div>}
+              {lead.utm_term && <div className="col-span-2"><span className="text-muted-foreground">фраза:</span> <span className="text-foreground font-mono">{lead.utm_term}</span></div>}
+              {lead.utm_content && <div className="col-span-2"><span className="text-muted-foreground">объявление:</span> <span className="text-foreground font-mono">{lead.utm_content}</span></div>}
+              {lead.yclid && <div className="col-span-2"><span className="text-muted-foreground">yclid:</span> <span className="text-foreground font-mono truncate">{lead.yclid}</span></div>}
+              {lead.gclid && <div className="col-span-2"><span className="text-muted-foreground">gclid:</span> <span className="text-foreground font-mono truncate">{lead.gclid}</span></div>}
+              {lead.referrer && <div className="col-span-2"><span className="text-muted-foreground">referrer:</span> <span className="text-foreground font-mono truncate">{lead.referrer}</span></div>}
+            </div>
           </div>
         )}
 

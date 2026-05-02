@@ -3,7 +3,11 @@ import Icon from "@/components/ui/icon";
 import { Page } from "@/App";
 import { useToast } from "@/hooks/use-toast";
 import { reachGoal } from "@/lib/metrika";
+import { readUtm } from "@/lib/utm";
 import SubscriptionPlans from "@/components/SubscriptionPlans";
+import func2url from "../../backend/func2url.json";
+
+const ADMIN_URL = (func2url as Record<string, string>).admin;
 
 interface ServicesProps {
   onNavigate: (page: Page) => void;
@@ -125,32 +129,47 @@ export default function Services({ onNavigate }: ServicesProps) {
     reachGoal("lead_form_open", { service: s.id });
   };
 
-  const submitRequest = () => {
+  const submitRequest = async () => {
     if (!activeService) return;
     if (!form.name.trim() || (!form.phone.trim() && !form.email.trim())) {
       toast({ title: "Заполните контакты", description: "Имя и телефон или email обязательны" });
       return;
     }
     setSubmitting(true);
-    setTimeout(() => {
-      const next = new Set(requestedIds).add(activeService.id);
-      setRequestedIds(next);
-      try {
-        localStorage.setItem("matad_requested_services", JSON.stringify(Array.from(next)));
-        const all = JSON.parse(localStorage.getItem("matad_leads") || "[]");
-        all.push({
+    const utm = readUtm();
+    const next = new Set(requestedIds).add(activeService.id);
+    setRequestedIds(next);
+    try {
+      localStorage.setItem("matad_requested_services", JSON.stringify(Array.from(next)));
+      const all = JSON.parse(localStorage.getItem("matad_leads") || "[]");
+      all.push({
+        service: activeService.title,
+        ...form,
+        utm,
+        createdAt: new Date().toISOString(),
+      });
+      localStorage.setItem("matad_leads", JSON.stringify(all));
+    } catch {/* noop */}
+    try {
+      await fetch(`${ADMIN_URL}?action=submit_lead`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.name,
+          phone: form.phone,
+          email: form.email,
+          comment: form.comment,
           service: activeService.title,
-          ...form,
-          createdAt: new Date().toISOString(),
-        });
-        localStorage.setItem("matad_leads", JSON.stringify(all));
-      } catch {/* noop */}
-      reachGoal("lead_form_submit", { service: activeService.id });
-      reachGoal("service_request", { service: activeService.id });
-      toast({ title: "Заявка отправлена", description: `Менеджер свяжется по «${activeService.title}» в течение 30 минут` });
-      setSubmitting(false);
-      setActiveService(null);
-    }, 600);
+          source: "website",
+          utm,
+        }),
+      });
+    } catch {/* noop — лид останется в localStorage */}
+    reachGoal("lead_form_submit", { service: activeService.id });
+    reachGoal("service_request", { service: activeService.id });
+    toast({ title: "Заявка отправлена", description: `Менеджер свяжется по «${activeService.title}» в течение 30 минут` });
+    setSubmitting(false);
+    setActiveService(null);
   };
 
   return (

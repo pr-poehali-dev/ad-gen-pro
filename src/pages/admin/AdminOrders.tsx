@@ -32,7 +32,8 @@ export default function AdminOrders() {
 
   const exportCsv = () => {
     const rows = [
-      ["№ заказа", "Email", "Имя", "Сумма", "Статус", "Создан", "Оплачен"],
+      ["№ заказа", "Email", "Имя", "Сумма", "Статус", "Создан", "Оплачен",
+       "utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "yclid", "gclid", "referrer"],
       ...orders.map((o) => [
         o.order_number,
         o.user_email,
@@ -41,6 +42,14 @@ export default function AdminOrders() {
         STATUS_LABELS[o.status] || o.status,
         new Date(o.created_at).toLocaleString("ru-RU"),
         o.paid_at ? new Date(o.paid_at).toLocaleString("ru-RU") : "",
+        o.utm_source || "",
+        o.utm_medium || "",
+        o.utm_campaign || "",
+        o.utm_term || "",
+        o.utm_content || "",
+        o.yclid || "",
+        o.gclid || "",
+        o.referrer || "",
       ]),
     ];
     const csv = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
@@ -100,6 +109,7 @@ export default function AdminOrders() {
                   <th className="px-4 py-3 text-[11px] uppercase font-bold text-muted-foreground">Клиент</th>
                   <th className="px-4 py-3 text-[11px] uppercase font-bold text-muted-foreground text-right">Сумма</th>
                   <th className="px-4 py-3 text-[11px] uppercase font-bold text-muted-foreground">Статус</th>
+                  <th className="px-4 py-3 text-[11px] uppercase font-bold text-muted-foreground hidden lg:table-cell">Источник</th>
                   <th className="px-4 py-3 text-[11px] uppercase font-bold text-muted-foreground hidden md:table-cell">Создан</th>
                 </tr>
               </thead>
@@ -116,6 +126,19 @@ export default function AdminOrders() {
                       <span className="text-[11px] px-2 py-1 rounded-md font-semibold" style={{ background: `${STATUS_COLORS[o.status]}20`, color: STATUS_COLORS[o.status] }}>
                         {STATUS_LABELS[o.status] || o.status}
                       </span>
+                    </td>
+                    <td className="px-4 py-3 hidden lg:table-cell">
+                      {o.utm_source || o.yclid || o.gclid ? (
+                        <div className="flex flex-col">
+                          <span className="text-[11px] font-mono text-neon-cyan">
+                            {o.utm_source || (o.yclid ? "yandex" : o.gclid ? "google" : "—")}
+                          </span>
+                          {o.utm_campaign && <span className="text-[10px] text-muted-foreground truncate max-w-[160px]">{o.utm_campaign}</span>}
+                          {o.utm_term && <span className="text-[10px] text-muted-foreground truncate max-w-[160px]">«{o.utm_term}»</span>}
+                        </div>
+                      ) : (
+                        <span className="text-[11px] text-muted-foreground/50">прямой</span>
+                      )}
                     </td>
                     <td className="px-4 py-3 hidden md:table-cell text-xs text-muted-foreground">{new Date(o.created_at).toLocaleString("ru-RU")}</td>
                   </tr>

@@ -171,6 +171,17 @@ def handler(event, context):
     return_url = data.get('return_url', '').strip()
     description = data.get('description', 'Оплата заказа')
     cart_items = data.get('cart_items', [])
+    utm = data.get('utm') or {}
+    utm_source = str(utm.get('utm_source', ''))[:255]
+    utm_medium = str(utm.get('utm_medium', ''))[:255]
+    utm_campaign = str(utm.get('utm_campaign', ''))[:255]
+    utm_term = str(utm.get('utm_term', ''))[:255]
+    utm_content = str(utm.get('utm_content', ''))[:255]
+    yclid = str(utm.get('yclid', ''))[:255]
+    gclid = str(utm.get('gclid', ''))[:255]
+    fbclid = str(utm.get('fbclid', ''))[:255]
+    referrer = str(utm.get('referrer', ''))[:1000]
+    landing = str(utm.get('landing', ''))[:1000]
 
     if amount < MIN_AMOUNT or amount > MAX_AMOUNT:
         return {
@@ -223,13 +234,18 @@ def handler(event, context):
         # Generate order number
         order_number = f"YK-{datetime.now().strftime('%Y%m%d')}-{uuid.uuid4().hex[:8].upper()}"
 
-        # Create order in DB
+        # Create order in DB (with UTM tracking)
         cur.execute(f"""
             INSERT INTO {S}orders
-            (order_number, user_name, user_email, user_phone, amount, status, created_at, updated_at)
-            VALUES (%s, %s, %s, %s, %s, 'pending', %s, %s)
+            (order_number, user_name, user_email, user_phone, amount, status, created_at, updated_at,
+             utm_source, utm_medium, utm_campaign, utm_term, utm_content,
+             yclid, gclid, fbclid, referrer, landing)
+            VALUES (%s, %s, %s, %s, %s, 'pending', %s, %s,
+                    %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING id
-        """, (order_number, user_name, user_email, user_phone, amount, now, now))
+        """, (order_number, user_name, user_email, user_phone, amount, now, now,
+              utm_source, utm_medium, utm_campaign, utm_term, utm_content,
+              yclid, gclid, fbclid, referrer, landing))
 
         order_id = cur.fetchone()[0]
 
@@ -248,11 +264,18 @@ def handler(event, context):
                 now
             ))
 
-        # Create YooKassa payment
+        # Create YooKassa payment (UTM saved to metadata for YooKassa dashboard)
         metadata = {
             "order_id": str(order_id),
             "order_number": order_number
         }
+        if utm_source: metadata["utm_source"] = utm_source[:128]
+        if utm_medium: metadata["utm_medium"] = utm_medium[:128]
+        if utm_campaign: metadata["utm_campaign"] = utm_campaign[:128]
+        if utm_term: metadata["utm_term"] = utm_term[:128]
+        if utm_content: metadata["utm_content"] = utm_content[:128]
+        if yclid: metadata["yclid"] = yclid[:128]
+        if gclid: metadata["gclid"] = gclid[:128]
 
         payment_response = create_yookassa_payment(
             shop_id=shop_id,

@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useYookassa, openPaymentPage } from "@/components/extensions/yookassa/useYookassa";
 import { reachGoal } from "@/lib/metrika";
+import { readUtm, utmSummary } from "@/lib/utm";
 import func2url from "../../backend/func2url.json";
 
 const YOOKASSA_API_URL = (func2url as Record<string, string>)["yookassa-yookassa"];
@@ -95,18 +96,45 @@ export default function SubscriptionPlans() {
       return;
     }
     setBusyPlan(plan.id);
-    reachGoal("subscription_click", { plan: plan.id, price: plan.price });
+    const utm = readUtm();
+    reachGoal("subscription_click", { plan: plan.id, price: plan.price, utm: utmSummary(utm) });
     const origin = typeof window !== "undefined" ? window.location.origin : "";
+    const utmDesc = utm ? ` [${utmSummary(utm)}]` : "";
     const response = await createPayment({
       amount: plan.price,
       userEmail: user.email,
       userName: user.name || undefined,
-      description: `Подписка mat-ad.ru — тариф ${plan.name}`,
+      description: `Подписка mat-ad.ru — тариф ${plan.name}${utmDesc}`,
       returnUrl: `${origin}/payment-success`,
       cartItems: [{ id: plan.id, name: `Тариф «${plan.name}»`, price: plan.price, quantity: 1 }],
+      utm: utm ? {
+        utm_source: utm.utm_source,
+        utm_medium: utm.utm_medium,
+        utm_campaign: utm.utm_campaign,
+        utm_term: utm.utm_term,
+        utm_content: utm.utm_content,
+        yclid: utm.yclid,
+        gclid: utm.gclid,
+        fbclid: utm.fbclid,
+        referrer: utm.referrer,
+        landing: utm.landing,
+      } : null,
     });
     if (response?.payment_url) {
-      reachGoal("subscription_payment_created", { plan: plan.id, price: plan.price, order: response.order_number });
+      reachGoal("subscription_payment_created", { plan: plan.id, price: plan.price, order: response.order_number, utm: utmSummary(utm) });
+      try {
+        const orders = JSON.parse(localStorage.getItem("matad_orders") || "[]");
+        orders.push({
+          order: response.order_number,
+          plan: plan.id,
+          planName: plan.name,
+          price: plan.price,
+          email: user.email,
+          utm,
+          createdAt: new Date().toISOString(),
+        });
+        localStorage.setItem("matad_orders", JSON.stringify(orders));
+      } catch {/* noop */}
       openPaymentPage(response.payment_url);
     }
     setBusyPlan(null);

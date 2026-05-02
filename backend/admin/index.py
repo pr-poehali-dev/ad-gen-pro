@@ -254,7 +254,9 @@ def get_orders(cur, params):
     where_sql = ('WHERE ' + ' AND '.join(where)) if where else ''
     cur.execute(f"""
         SELECT id, order_number, user_email, user_name, user_phone, amount, status,
-               yookassa_payment_id, payment_url, created_at, paid_at
+               yookassa_payment_id, payment_url, created_at, paid_at,
+               utm_source, utm_medium, utm_campaign, utm_term, utm_content,
+               yclid, gclid, fbclid, referrer, landing
         FROM orders {where_sql}
         ORDER BY created_at DESC LIMIT {limit}
     """)
@@ -266,12 +268,45 @@ def get_orders(cur, params):
     return {'orders': orders}
 
 
+def submit_lead(cur, body):
+    """Публичный приём лидов с лендинга (с UTM)."""
+    name = (body.get('name') or '').strip().replace("'", "''")[:255]
+    if not name:
+        return {'error': 'name required'}
+    phone = (body.get('phone') or '').strip().replace("'", "''")[:64]
+    email = (body.get('email') or '').strip().lower().replace("'", "''")[:255]
+    if not phone and not email:
+        return {'error': 'phone or email required'}
+    service = (body.get('service') or '').replace("'", "''")[:255]
+    comment = (body.get('comment') or '').replace("'", "''")[:5000]
+    source = (body.get('source') or 'website').replace("'", "''")[:64]
+    utm = body.get('utm') or {}
+    def _u(key, max_len=255):
+        return str(utm.get(key) or '').replace("'", "''")[:max_len]
+    cur.execute(f"""
+        INSERT INTO leads
+        (source, service, name, phone, email, comment,
+         utm_source, utm_medium, utm_campaign, utm_term, utm_content,
+         yclid, gclid, fbclid, referrer, landing)
+        VALUES ('{source}', '{service}', '{name}', '{phone}', '{email}', '{comment}',
+                '{_u('utm_source')}', '{_u('utm_medium')}', '{_u('utm_campaign')}',
+                '{_u('utm_term')}', '{_u('utm_content')}',
+                '{_u('yclid')}', '{_u('gclid')}', '{_u('fbclid')}',
+                '{_u('referrer', 1000)}', '{_u('landing', 1000)}')
+        RETURNING id
+    """)
+    new_id = cur.fetchone()['id']
+    return {'ok': True, 'id': new_id}
+
+
 def get_leads(cur, params):
     stage = (params.get('stage') or '').replace("'", "''")[:32]
     where_sql = f"WHERE pipeline_stage = '{stage}'" if stage else ''
     cur.execute(f"""
         SELECT id, source, service, name, email, phone, comment, status, pipeline_stage,
-               amount, notes, created_at, updated_at
+               amount, notes, created_at, updated_at,
+               utm_source, utm_medium, utm_campaign, utm_term, utm_content,
+               yclid, gclid, fbclid, referrer, landing
         FROM leads {where_sql}
         ORDER BY created_at DESC LIMIT 200
     """)
@@ -476,6 +511,10 @@ def handler(event, context):
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
     try:
+        # Публичный эндпоинт приёма лидов (без токена) — нужен для лендинга
+        if method == 'POST' and action == 'submit_lead':
+            return _resp(200, submit_lead(cur, body))
+
         admin = _admin_by_token(cur, token)
         if not admin:
             return _resp(403, {'error': 'Доступ только для администраторов'})
