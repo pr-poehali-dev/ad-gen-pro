@@ -105,11 +105,47 @@ const services: Service[] = [
 
 export default function Services({ onNavigate }: ServicesProps) {
   const { toast } = useToast();
-  const [requestedId, setRequestedId] = useState<string | null>(null);
+  const [requestedIds, setRequestedIds] = useState<Set<string>>(() => {
+    if (typeof window === "undefined") return new Set();
+    try {
+      return new Set(JSON.parse(localStorage.getItem("matad_requested_services") || "[]"));
+    } catch {
+      return new Set();
+    }
+  });
+  const [activeService, setActiveService] = useState<Service | null>(null);
+  const [form, setForm] = useState({ name: "", phone: "", email: "", comment: "" });
+  const [submitting, setSubmitting] = useState(false);
 
   const requestService = (s: Service) => {
-    setRequestedId(s.id);
-    toast({ title: "Заявка отправлена", description: `Менеджер свяжется по услуге «${s.title}» в течение 30 минут` });
+    setActiveService(s);
+    setForm({ name: "", phone: "", email: "", comment: "" });
+  };
+
+  const submitRequest = () => {
+    if (!activeService) return;
+    if (!form.name.trim() || (!form.phone.trim() && !form.email.trim())) {
+      toast({ title: "Заполните контакты", description: "Имя и телефон или email обязательны" });
+      return;
+    }
+    setSubmitting(true);
+    setTimeout(() => {
+      const next = new Set(requestedIds).add(activeService.id);
+      setRequestedIds(next);
+      try {
+        localStorage.setItem("matad_requested_services", JSON.stringify(Array.from(next)));
+        const all = JSON.parse(localStorage.getItem("matad_leads") || "[]");
+        all.push({
+          service: activeService.title,
+          ...form,
+          createdAt: new Date().toISOString(),
+        });
+        localStorage.setItem("matad_leads", JSON.stringify(all));
+      } catch {/* noop */}
+      toast({ title: "Заявка отправлена", description: `Менеджер свяжется по «${activeService.title}» в течение 30 минут` });
+      setSubmitting(false);
+      setActiveService(null);
+    }, 600);
   };
 
   return (
@@ -160,7 +196,7 @@ export default function Services({ onNavigate }: ServicesProps) {
       {/* Services grid */}
       <div className="grid grid-cols-2 gap-4">
         {services.map(s => {
-          const isRequested = requestedId === s.id;
+          const isRequested = requestedIds.has(s.id);
           return (
             <div key={s.id}
               className={`glass glass-hover rounded-2xl p-6 relative overflow-hidden ${s.popular ? "ring-1 ring-neon-cyan/40" : ""}`}>
@@ -238,6 +274,81 @@ export default function Services({ onNavigate }: ServicesProps) {
           </button>
         </div>
       </div>
+
+      {/* Request form modal */}
+      {activeService && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in"
+          onClick={() => !submitting && setActiveService(null)}>
+          <div onClick={e => e.stopPropagation()}
+            className="glass rounded-2xl p-6 w-full max-w-md shadow-2xl">
+            <div className="flex items-start justify-between mb-5">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0"
+                  style={{ background: `${activeService.color}20`, border: `1px solid ${activeService.color}40` }}>
+                  <Icon name={activeService.icon} size={20} style={{ color: activeService.color }} />
+                </div>
+                <div className="min-w-0">
+                  <h2 className="font-heading font-bold text-foreground text-base">Заявка на услугу</h2>
+                  <div className="text-xs text-muted-foreground truncate">{activeService.title} · {activeService.price}</div>
+                </div>
+              </div>
+              <button onClick={() => setActiveService(null)} disabled={submitting}
+                className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors flex-shrink-0">
+                <Icon name="X" size={18} />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Ваше имя *</label>
+                <input type="text" value={form.name} autoFocus
+                  onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
+                  placeholder="Иван Иванов"
+                  className="w-full px-4 py-2.5 rounded-xl bg-muted/50 border border-border text-sm text-foreground focus:outline-none focus:border-neon-cyan/50 transition-colors" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Телефон</label>
+                  <input type="tel" value={form.phone}
+                    onChange={e => setForm(p => ({ ...p, phone: e.target.value }))}
+                    placeholder="+7 (___) ___-__-__"
+                    className="w-full px-4 py-2.5 rounded-xl bg-muted/50 border border-border text-sm text-foreground focus:outline-none focus:border-neon-cyan/50 transition-colors" />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Email</label>
+                  <input type="email" value={form.email}
+                    onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
+                    placeholder="you@company.ru"
+                    className="w-full px-4 py-2.5 rounded-xl bg-muted/50 border border-border text-sm text-foreground focus:outline-none focus:border-neon-cyan/50 transition-colors" />
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Комментарий</label>
+                <textarea value={form.comment} rows={3}
+                  onChange={e => setForm(p => ({ ...p, comment: e.target.value }))}
+                  placeholder="Кратко опишите задачу или бюджет"
+                  className="w-full px-4 py-2.5 rounded-xl bg-muted/50 border border-border text-sm text-foreground focus:outline-none focus:border-neon-cyan/50 transition-colors resize-none" />
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-5">
+              <button onClick={() => setActiveService(null)} disabled={submitting}
+                className="flex-1 py-2.5 rounded-xl glass text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+                Отмена
+              </button>
+              <button onClick={submitRequest} disabled={submitting}
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-background transition-all hover:scale-[1.02] disabled:opacity-60 flex items-center justify-center gap-2"
+                style={{ background: 'linear-gradient(135deg, hsl(185,100%,55%), hsl(260,80%,65%))' }}>
+                {submitting ? <Icon name="Loader2" size={14} className="animate-spin" /> : <Icon name="Send" size={14} />}
+                {submitting ? "Отправка..." : "Отправить заявку"}
+              </button>
+            </div>
+            <p className="text-[10px] text-muted-foreground text-center mt-3">
+              Нажимая кнопку, вы соглашаетесь с обработкой персональных данных
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

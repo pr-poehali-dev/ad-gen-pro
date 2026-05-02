@@ -444,7 +444,7 @@ export default function Agent({ campaigns, feeds, onNavigate }: AgentProps) {
                     style={{ background: 'linear-gradient(135deg, hsl(185,100%,55%), hsl(260,80%,65%))' }}>
                     <Icon name="Brain" size={20} className="text-background" />
                   </div>
-                  <span className="text-[10px] uppercase tracking-widest font-bold text-neon-cyan">AdFlow Brain · 24/7</span>
+                  <span className="text-[10px] uppercase tracking-widest font-bold text-neon-cyan">mat-ad.ru AI · 24/7</span>
                 </div>
                 <h3 className="font-heading font-bold text-foreground leading-tight mb-3" style={{ fontSize: "clamp(1.6rem, 3vw, 2.5rem)" }}>
                   Готовы расти быстрее?
@@ -471,9 +471,9 @@ export default function Agent({ campaigns, feeds, onNavigate }: AgentProps) {
           </div>
 
           <div className="flex items-center justify-between mt-8 text-xs text-muted-foreground">
-            <span>© 2026 AdFlow Agency · Powered by polza.ai · GPT-4o</span>
+            <span>© {new Date().getFullYear()} ООО «МАТ-Лабс» · mat-ad.ru · Powered by polza.ai</span>
             <div className="flex gap-4">
-              <span>hello@adflow.io</span>
+              <span>hello@mat-ad.ru</span>
               <span>+7 (495) 123-45-67</span>
             </div>
           </div>
