@@ -312,19 +312,33 @@ def handler(event, context):
         }
 
     except HTTPError as e:
-        conn.rollback()
+        import sys
+        try:
+            conn.rollback()
+        except Exception:
+            pass
         error_body = e.read().decode() if e.fp else str(e)
+        print(f"[YOOKASSA HTTP ERROR] {e.code} {error_body}", file=sys.stderr, flush=True)
         return {
             'statusCode': 500,
             'headers': HEADERS,
             'body': json.dumps({'error': f'YooKassa API error: {error_body}'})
         }
     except Exception as e:
-        conn.rollback()
+        import traceback, sys
+        tb = traceback.format_exc()
+        print(f"[YOOKASSA ERROR] {e}\n{tb}", file=sys.stderr, flush=True)
+        try:
+            conn.rollback()
+        except Exception:
+            pass
         return {
             'statusCode': 500,
             'headers': HEADERS,
             'body': json.dumps({'error': str(e)})
         }
     finally:
-        conn.close()
+        try:
+            conn.close()
+        except Exception:
+            pass

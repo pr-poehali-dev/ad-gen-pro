@@ -10,10 +10,11 @@ interface CampaignsProps {
   onToggle: (id: number) => void;
   onDelete: (id: number) => void;
   onAdd: (name: string, platform: "yandex" | "google", budget: number) => void;
+  onDuplicate?: (id: number) => void;
   onNavigate: (page: Page) => void;
 }
 
-export default function Campaigns({ campaigns, onToggle, onDelete, onAdd, onNavigate }: CampaignsProps) {
+export default function Campaigns({ campaigns, onToggle, onDelete, onAdd, onDuplicate, onNavigate }: CampaignsProps) {
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
@@ -185,6 +186,15 @@ export default function Campaigns({ campaigns, onToggle, onDelete, onAdd, onNavi
               >
                 <Icon name="Upload" size={15} />
               </button>
+              {onDuplicate && (
+                <button
+                  onClick={() => onDuplicate(c.id)}
+                  title="Дублировать"
+                  className="p-2 rounded-xl glass text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <Icon name="Copy" size={15} />
+                </button>
+              )}
               <button
                 onClick={() => setDeleteId(c.id)}
                 title="Удалить"

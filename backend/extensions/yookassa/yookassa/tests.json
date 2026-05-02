@@ -1,0 +1,25 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "POST с минимальными валидными данными",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "amount": 100,
+        "user_email": "test@example.com",
+        "user_name": "Test",
+        "description": "Тест",
+        "return_url": "https://mat-ad.ru/payment-success",
+        "cart_items": [{"id": "x", "name": "Тест", "price": 100, "quantity": 1}]
+      },
+      "expectedStatus": 200,
+      "bodyMatcher": "partial"
+    }
+  ]
+}
