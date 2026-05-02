@@ -336,14 +336,15 @@ export default function Agent({ onNavigate }: AgentProps) {
               style={{ background: 'radial-gradient(circle, hsl(185,100%,55%), transparent 70%)' }} />
             <div className="relative">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass text-[10px] font-bold uppercase tracking-widest text-neon-cyan mb-4">
-                <div className="w-1.5 h-1.5 rounded-full bg-neon-green animate-pulse-slow" />
-                Live · Ваш аккаунт
+                <Icon name="LayoutDashboard" size={11} />
+                Ваш кабинет
               </div>
               <h3 className="font-heading font-bold text-foreground text-2xl md:text-3xl mb-3 leading-tight">
-                Текущая картина по вашим кампаниям
+                Все ваши данные в одном месте
               </h3>
               <p className="text-sm text-muted-foreground mb-6">
-                Мы видим всё в реальном времени и можем подстроиться под изменения рынка за минуты, а не дни.
+                Дашборд собирает кампании, группы, объявления, фразы, фиды, расписание и автоматизации в один экран —
+                чтобы можно было быстро принимать решения.
               </p>
               <button onClick={() => onNavigate("dashboard")}
                 className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-background transition-all hover:scale-105"
@@ -355,10 +356,10 @@ export default function Agent({ onNavigate }: AgentProps) {
 
             <div className="relative grid grid-cols-2 gap-3">
               {[
-                { label: "Активных кампаний", value: activeCount, icon: "Megaphone", color: "hsl(145,70%,50%)" },
-                { label: "Расход", value: `₽ ${(totalSpent / 1000).toFixed(0)}k`, icon: "Wallet", color: "hsl(30,100%,60%)" },
-                { label: "Показов", value: `${(totalImpressions / 1000).toFixed(0)}k`, icon: "Eye", color: "hsl(185,100%,55%)" },
-                { label: "Товаров в фидах", value: productsCount.toLocaleString("ru-RU"), icon: "Package", color: "hsl(260,80%,65%)" },
+                { label: "Кампании", desc: "Эксперт-режим как в ЯД", icon: "Megaphone", color: "hsl(145,70%,50%)" },
+                { label: "Бюджеты", desc: "Дневные и недельные", icon: "Wallet", color: "hsl(30,100%,60%)" },
+                { label: "Автоматизации", desc: "Правила управления", icon: "Bot", color: "hsl(185,100%,55%)" },
+                { label: "Фиды", desc: "YML и CSV каталоги", icon: "Package", color: "hsl(260,80%,65%)" },
               ].map((s, i) => (
                 <div key={i} className="rounded-2xl p-5"
                   style={{ background: `${s.color}10`, border: `1px solid ${s.color}30` }}>
@@ -366,8 +367,8 @@ export default function Agent({ onNavigate }: AgentProps) {
                     style={{ background: `${s.color}20` }}>
                     <Icon name={s.icon} size={16} style={{ color: s.color }} />
                   </div>
-                  <div className="font-heading font-bold text-foreground text-2xl">{s.value}</div>
-                  <div className="text-[11px] text-muted-foreground mt-0.5">{s.label}</div>
+                  <div className="font-heading font-bold text-foreground text-base">{s.label}</div>
+                  <div className="text-[11px] text-muted-foreground mt-0.5">{s.desc}</div>
                 </div>
               ))}
             </div>
