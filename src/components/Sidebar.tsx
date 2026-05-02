@@ -121,7 +121,9 @@ export default function Sidebar({
             {!collapsed && (
               <div className="text-left min-w-0">
                 <div className="font-heading font-bold text-base text-foreground tracking-tight truncate">mat-ad.ru</div>
-                <div className="text-[10px] text-muted-foreground font-medium tracking-widest uppercase">AI Agency</div>
+                <div className="text-[9px] text-muted-foreground font-medium leading-tight" title="Максимально автоматизированные технологии рекламы">
+                  Максимально автоматизированные<br/>технологии рекламы
+                </div>
               </div>
             )}
           </button>

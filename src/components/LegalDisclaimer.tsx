@@ -26,6 +26,7 @@ export default function LegalDisclaimer() {
         </p>
         <div className="flex flex-wrap gap-x-4 gap-y-1 pt-2 border-t border-border/30 mt-2">
           <span>© {new Date().getFullYear()} ООО «МАТ-Лабс»</span>
+          <span className="text-foreground/70"><strong>mat-ad.ru</strong> — Максимально автоматизированные технологии рекламы</span>
           <span>ИНН / ОГРН: указаны в реквизитах</span>
           <span>hello@mat-ad.ru</span>
         </div>
