@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Dashboard from "./pages/Dashboard";
@@ -16,7 +16,20 @@ import Insights from "./pages/Insights";
 import Sidebar from "./components/Sidebar";
 import FloatingAgent from "./components/FloatingAgent";
 import Icon from "./components/ui/icon";
+import Breadcrumbs from "./components/Breadcrumbs";
 import useSwipeGesture from "./hooks/useSwipeGesture";
+
+const VALID_PAGES: Page[] = [
+  "agent","dashboard","insights","feeds","ai","templates",
+  "campaigns","calendar","automations","services","export","settings"
+];
+
+function getPageFromPath(): Page {
+  if (typeof window === "undefined") return "agent";
+  const slug = window.location.pathname.replace(/^\/+|\/+$/g, "").split("/")[0];
+  if (!slug) return "agent";
+  return (VALID_PAGES as string[]).includes(slug) ? (slug as Page) : "agent";
+}
 
 export type Page =
   | "agent" | "dashboard" | "insights"
@@ -81,7 +94,21 @@ const initialExportHistory: ExportRecord[] = [
 ];
 
 export default function App() {
-  const [activePage, setActivePage] = useState<Page>("agent");
+  const [activePage, setActivePageState] = useState<Page>(getPageFromPath);
+
+  const setActivePage = (page: Page) => {
+    setActivePageState(page);
+    const path = page === "agent" ? "/" : `/${page}`;
+    if (typeof window !== "undefined" && window.location.pathname !== path) {
+      window.history.pushState({ page }, "", path);
+    }
+  };
+
+  useEffect(() => {
+    const onPop = () => setActivePageState(getPageFromPath());
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
   const [campaigns, setCampaigns] = useState<Campaign[]>(initialCampaigns);
   const [feeds, setFeeds] = useState<Feed[]>(initialFeeds);
   const [exportHistory, setExportHistory] = useState<ExportRecord[]>(initialExportHistory);
@@ -238,7 +265,13 @@ export default function App() {
                 style={{ background: 'radial-gradient(circle, hsl(30,100%,60%), transparent 70%)' }} />
             </div>
           )}
-          <div className="relative z-10">{renderPage()}</div>
+          {!isAgentPage && (
+            <div className="relative z-10 px-4 md:px-8 pt-16 md:pt-6 pb-1">
+              <Breadcrumbs page={activePage} onNavigate={setActivePage} />
+            </div>
+          )}
+          {isAgentPage && <Breadcrumbs page={activePage} onNavigate={setActivePage} />}
+          <div className={`relative z-10 ${!isAgentPage ? "[&>div]:pt-2 [&>div]:md:pt-2" : ""}`}>{renderPage()}</div>
 
           <footer className="relative z-10 mt-8 px-6 py-5 border-t border-border/40">
             <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3 text-center md:text-left">

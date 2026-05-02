@@ -1,3 +1,14 @@
+User-agent: *
+Allow: /
+Disallow: /settings
+Disallow: /export
+
+User-agent: Yandex
+Allow: /
+Disallow: /settings
+Disallow: /export
+Clean-param: utm_source&utm_medium&utm_campaign&utm_content&utm_term
+
 User-agent: Googlebot
 Allow: /
 
@@ -10,5 +21,5 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
-User-agent: *
-Allow: /
+Host: https://mat-ad.ru
+Sitemap: https://mat-ad.ru/sitemap.xml
