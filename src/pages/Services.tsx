@@ -2,6 +2,7 @@ import { useState } from "react";
 import Icon from "@/components/ui/icon";
 import { Page } from "@/App";
 import { useToast } from "@/hooks/use-toast";
+import SubscriptionPlans from "@/components/SubscriptionPlans";
 
 interface ServicesProps {
   onNavigate: (page: Page) => void;
@@ -194,6 +195,16 @@ export default function Services({ onNavigate }: ServicesProps) {
             </div>
           ))}
         </div>
+      </div>
+
+      <SubscriptionPlans />
+
+      <div className="my-8 flex items-center gap-4">
+        <div className="h-[1px] flex-1 bg-border/40" />
+        <div className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">
+          Индивидуальные пакеты услуг
+        </div>
+        <div className="h-[1px] flex-1 bg-border/40" />
       </div>
 
       {/* Services grid */}

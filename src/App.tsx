@@ -19,6 +19,7 @@ import Icon from "./components/ui/icon";
 import Breadcrumbs from "./components/Breadcrumbs";
 import LegalDisclaimer from "./components/LegalDisclaimer";
 import Auth from "./pages/Auth";
+import PaymentSuccess from "./pages/PaymentSuccess";
 import useSwipeGesture from "./hooks/useSwipeGesture";
 import { useCloudSync } from "./hooks/useCloudSync";
 import { useAuth } from "./contexts/AuthContext";
@@ -98,6 +99,19 @@ const initialExportHistory: ExportRecord[] = [
 ];
 
 export default function App() {
+  const isSuccessPage = typeof window !== "undefined" && window.location.pathname.startsWith("/payment-success");
+  if (isSuccessPage) {
+    return (
+      <TooltipProvider>
+        <Toaster />
+        <PaymentSuccess />
+      </TooltipProvider>
+    );
+  }
+  return <MainApp />;
+}
+
+function MainApp() {
   useAuth();
   const [authOpen, setAuthOpen] = useState(false);
   const [activePage, setActivePageState] = useState<Page>(getPageFromPath);
