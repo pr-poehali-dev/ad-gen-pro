@@ -1,5 +1,11 @@
 import json
 import os
+import smtplib
+import ssl
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.utils import formataddr, formatdate
+from email.header import Header
 from datetime import datetime, timedelta
 import psycopg2
 from psycopg2.extras import RealDictCursor
@@ -11,6 +17,103 @@ CORS_HEADERS = {
     'Access-Control-Allow-Headers': 'Content-Type, X-Auth-Token',
     'Access-Control-Max-Age': '86400',
 }
+
+
+def _send_email(to_email: str, subject: str, html_body: str, text_body: str = '') -> bool:
+    """Отправка письма через SMTP. Возвращает True/False, не падает при ошибке."""
+    host = os.environ.get('SMTP_HOST', '')
+    port_str = os.environ.get('SMTP_PORT', '465')
+    user = os.environ.get('SMTP_USER', '')
+    password = os.environ.get('SMTP_PASSWORD', '')
+    if not (host and user and password and to_email):
+        print(f'[email] SMTP not configured or no recipient', flush=True)
+        return False
+    try:
+        port = int(port_str)
+    except Exception:
+        port = 465
+    try:
+        msg = MIMEMultipart('alternative')
+        msg['From'] = formataddr((str(Header('mat-ad.ru', 'utf-8')), user))
+        msg['To'] = to_email
+        msg['Subject'] = str(Header(subject, 'utf-8'))
+        msg['Date'] = formatdate(localtime=True)
+        if text_body:
+            msg.attach(MIMEText(text_body, 'plain', 'utf-8'))
+        msg.attach(MIMEText(html_body, 'html', 'utf-8'))
+        ctx = ssl.create_default_context()
+        if port == 465:
+            with smtplib.SMTP_SSL(host, port, context=ctx, timeout=15) as s:
+                s.login(user, password)
+                s.sendmail(user, [a.strip() for a in to_email.split(',') if a.strip()], msg.as_string())
+        else:
+            with smtplib.SMTP(host, port, timeout=15) as s:
+                s.starttls(context=ctx)
+                s.login(user, password)
+                s.sendmail(user, [a.strip() for a in to_email.split(',') if a.strip()], msg.as_string())
+        return True
+    except Exception as e:
+        print(f'[email] send failed: {e}', flush=True)
+        return False
+
+
+def _notify_lead(name, phone, email, service, comment, utm):
+    """Шлёт письмо менеджеру и подтверждение клиенту."""
+    manager_to = os.environ.get('LEAD_NOTIFY_EMAIL', '')
+    utm_block = ''
+    if utm:
+        rows = []
+        for k in ('utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'yclid', 'gclid', 'referrer'):
+            v = utm.get(k)
+            if v:
+                rows.append(f'<tr><td style="padding:4px 8px;color:#666;">{k}</td><td style="padding:4px 8px;font-family:monospace;">{v}</td></tr>')
+        if rows:
+            utm_block = '<table style="border-collapse:collapse;border:1px solid #eee;margin-top:12px;font-size:12px;"><tbody>' + ''.join(rows) + '</tbody></table>'
+
+    # 1. Менеджеру
+    if manager_to:
+        html = f"""<!doctype html><html><body style="font-family:Arial,sans-serif;color:#222;background:#f7f7f9;padding:20px;">
+        <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:12px;padding:24px;border:1px solid #eee;">
+            <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Новая заявка с mat-ad.ru</div>
+            <h2 style="margin:0 0 16px;font-size:20px;">{name}</h2>
+            <table style="width:100%;font-size:14px;">
+                <tr><td style="padding:6px 0;color:#666;width:120px;">Телефон</td><td style="padding:6px 0;font-weight:bold;"><a href="tel:{phone}" style="color:#0a8;text-decoration:none;">{phone or '—'}</a></td></tr>
+                <tr><td style="padding:6px 0;color:#666;">Email</td><td style="padding:6px 0;font-weight:bold;"><a href="mailto:{email}" style="color:#0a8;text-decoration:none;">{email or '—'}</a></td></tr>
+                <tr><td style="padding:6px 0;color:#666;">Услуга</td><td style="padding:6px 0;">{service or '—'}</td></tr>
+                <tr><td style="padding:6px 0;color:#666;vertical-align:top;">Комментарий</td><td style="padding:6px 0;">{comment or '—'}</td></tr>
+            </table>
+            {utm_block}
+            <div style="margin-top:20px;padding-top:16px;border-top:1px solid #eee;font-size:12px;color:#999;">
+                Свяжитесь с клиентом в течение 30 минут — конверсия в сделку выше в 7 раз при быстром отклике.
+            </div>
+        </div></body></html>"""
+        text = f"Новая заявка: {name}\nТелефон: {phone or '—'}\nEmail: {email or '—'}\nУслуга: {service or '—'}\nКомментарий: {comment or '—'}"
+        _send_email(manager_to, f'Новая заявка: {name} ({service or "услуга"})', html, text)
+
+    # 2. Клиенту — подтверждение
+    if email:
+        html = f"""<!doctype html><html><body style="font-family:Arial,sans-serif;color:#222;background:#f7f7f9;padding:20px;">
+        <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:12px;padding:24px;border:1px solid #eee;">
+            <h2 style="margin:0 0 12px;font-size:22px;">Спасибо за заявку, {name}!</h2>
+            <p style="font-size:14px;line-height:1.5;color:#444;">
+                Мы получили вашу заявку{f' по услуге «{service}»' if service else ''} и свяжемся в течение <b>30 минут</b> в рабочее время.
+            </p>
+            <p style="font-size:14px;line-height:1.5;color:#444;">
+                Если у вас срочный вопрос — напишите нам в Telegram: <a href="https://t.me/+QgiLIa1gFRY4Y2Iy" style="color:#0a8;">@matad_community</a>
+            </p>
+            <div style="margin-top:24px;padding:16px;background:#f4faff;border-radius:8px;font-size:13px;color:#555;">
+                <b>Что дальше:</b><br>
+                1. Менеджер свяжется по {phone or email}<br>
+                2. Уточним задачу и подберём решение<br>
+                3. Пришлём предложение по почте
+            </div>
+            <div style="margin-top:24px;font-size:12px;color:#999;">
+                — Команда mat-ad.ru<br>
+                Максимально автоматизированные технологии рекламы
+            </div>
+        </div></body></html>"""
+        text = f"Спасибо за заявку, {name}! Мы свяжемся в течение 30 минут.\n— mat-ad.ru"
+        _send_email(email, f'Заявка получена — mat-ad.ru', html, text)
 
 
 def _resp(status, body):
@@ -296,6 +399,20 @@ def submit_lead(cur, body):
         RETURNING id
     """)
     new_id = cur.fetchone()['id']
+
+    # Email-уведомление (не падает если SMTP не настроен)
+    try:
+        _notify_lead(
+            name=body.get('name') or '',
+            phone=body.get('phone') or '',
+            email=body.get('email') or '',
+            service=body.get('service') or '',
+            comment=body.get('comment') or '',
+            utm=body.get('utm') or {},
+        )
+    except Exception as e:
+        print(f'[submit_lead] notify failed: {e}', flush=True)
+
     return {'ok': True, 'id': new_id}
 
 

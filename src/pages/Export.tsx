@@ -5,6 +5,7 @@ import { useAuth, authHeaders } from "@/contexts/AuthContext";
 import { ydApi } from "./yd/api";
 import { CAMPAIGN_TYPE_META, STATUS_LABEL, STATUS_COLOR } from "./yd/types";
 import type { YdCampaignListItem } from "./yd/types";
+import { reachGoal } from "@/lib/metrika";
 import func2url from "../../backend/func2url.json";
 
 const EXPORT_URL = (func2url as Record<string, string>)["yd-export"];
@@ -87,6 +88,7 @@ export default function Export() {
       const d = await res.json();
       if (!res.ok || d.error) throw new Error(d.error || "Ошибка");
       downloadBase64Xlsx(d.content_base64, d.filename);
+      reachGoal("export_done", { campaign_id: id, size_kb: Math.round(d.size_bytes / 1024) });
       toast({
         title: "Файл скачан",
         description: `${d.filename} (${Math.round(d.size_bytes / 1024)} КБ)`,

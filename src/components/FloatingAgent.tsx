@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import Icon from "@/components/ui/icon";
 import { useToast } from "@/hooks/use-toast";
+import { reachGoal } from "@/lib/metrika";
 
 const AGENT_URL = "https://functions.poehali.dev/7c410ad0-0dcc-4514-91c0-69f9b4bee236";
 
@@ -39,6 +40,7 @@ export default function FloatingAgent() {
     setMessages(updated);
     setInput("");
     setLoading(true);
+    reachGoal("ai_agent_message", { length: text.length, msg_idx: messages.length });
     try {
       const resp = await fetch(AGENT_URL, {
         method: "POST",

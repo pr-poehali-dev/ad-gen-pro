@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import Icon from "@/components/ui/icon";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth, authHeaders } from "@/contexts/AuthContext";
+import { reachGoal } from "@/lib/metrika";
 import func2url from "../../backend/func2url.json";
 
 const FEEDS_URL = (func2url as Record<string, string>).feeds;
@@ -92,6 +93,7 @@ export default function Feeds() {
       });
       const d = await res.json();
       if (!res.ok || d.error) throw new Error(d.error || "Ошибка загрузки");
+      reachGoal("feed_uploaded", { products: d.products, file_type: file.name.split(".").pop() });
       toast({
         title: d.parse_error ? "Загружено с предупреждением" : "Фид загружен",
         description: d.parse_error || `Распознано товаров: ${d.products}`,

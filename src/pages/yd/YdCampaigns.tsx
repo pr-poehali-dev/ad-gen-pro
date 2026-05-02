@@ -7,6 +7,7 @@ import { ydApiClient } from "./ydApiClient";
 import type { YdApiStatus } from "./ydApiClient";
 import { CAMPAIGN_TYPE_META, STATUS_LABEL, STATUS_COLOR } from "./types";
 import type { YdCampaignListItem, YdCampaignType } from "./types";
+import { reachGoal } from "@/lib/metrika";
 import YdWizard from "./YdWizard";
 
 export default function YdCampaigns() {
@@ -80,6 +81,7 @@ export default function YdCampaigns() {
     }
     try {
       const { id } = await ydApi.create(newName.trim(), newType);
+      reachGoal("campaign_created", { campaign_type: newType });
       setNewName("");
       setCreating(false);
       setEditingId(id);

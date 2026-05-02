@@ -5,6 +5,7 @@ import { useAuth, authHeaders } from "@/contexts/AuthContext";
 import { Page } from "@/App";
 import { ydApi } from "./yd/api";
 import type { YdGroupListItem } from "./yd/api";
+import { reachGoal } from "@/lib/metrika";
 import func2url from "../../backend/func2url.json";
 
 const GENERATE_ADS_URL = (func2url as Record<string, string>)["generate-ads"];
@@ -94,12 +95,13 @@ export default function AiGenerator({ onNavigate }: AiGeneratorProps) {
       if (feedId) body.feed_id = feedId;
       const res = await fetch(GENERATE_ADS_URL, {
         method: "POST",
-        headers: authHeaders(),
+        headers: user ? authHeaders() : { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
       const d = await res.json();
       if (!res.ok || d.error) throw new Error(d.error || "Ошибка генерации");
       setResults(d.ads || []);
+      reachGoal("ad_generated", { count: d.count, ad_type: adType, tone, demo: !user });
       toast({ title: "Сгенерировано", description: `${d.count} объявлений` });
     } catch (e) {
       const msg = String(e);
@@ -169,18 +171,6 @@ export default function AiGenerator({ onNavigate }: AiGeneratorProps) {
     toast({ title: "Скопировано в буфер" });
   };
 
-  if (!user) {
-    return (
-      <div className="p-4 md:p-8 pt-16 md:pt-8 animate-fade-in">
-        <div className="glass rounded-2xl p-8 text-center max-w-md mx-auto">
-          <Icon name="Lock" size={32} className="text-neon-cyan mx-auto mb-3" />
-          <div className="font-bold text-foreground mb-1">Войдите в аккаунт</div>
-          <div className="text-sm text-muted-foreground">Генерация объявлений работает с вашими фидами и кампаниями</div>
-        </div>
-      </div>
-    );
-  }
-
   const targetGroup = groups.find((g) => g.id === targetGroupId);
 
   return (
@@ -188,40 +178,76 @@ export default function AiGenerator({ onNavigate }: AiGeneratorProps) {
       <div className="mb-6">
         <div className="flex items-center gap-2 text-xs text-neon-cyan mb-2 uppercase tracking-widest font-bold">
           <Icon name="Sparkles" size={13} /> AI-генерация на GPT-4o
+          {!user && (
+            <span className="ml-1 text-[10px] px-1.5 py-0.5 rounded bg-neon-cyan/15 text-neon-cyan">
+              демо · без регистрации
+            </span>
+          )}
         </div>
         <h1 className="font-heading text-xl md:text-2xl font-bold text-foreground">Генератор объявлений</h1>
         <p className="text-muted-foreground text-sm mt-1">
-          Подгружает товары из фида, генерирует объявления и сохраняет их прямо в группу кампании
+          {user
+            ? "Подгружает товары из фида, генерирует объявления и сохраняет их прямо в группу кампании"
+            : "Опишите товар или услугу — GPT-4o создаст готовые объявления для Яндекс Директа. Регистрация нужна только для сохранения в кампанию."}
         </p>
       </div>
+
+      {!user && (
+        <div className="glass rounded-2xl p-4 mb-4 flex flex-col sm:flex-row items-start sm:items-center gap-3 border border-neon-cyan/30 bg-neon-cyan/5">
+          <Icon name="Sparkles" size={20} className="text-neon-cyan flex-shrink-0" />
+          <div className="flex-1 min-w-0">
+            <div className="font-bold text-foreground text-sm">Попробуйте бесплатно</div>
+            <div className="text-xs text-muted-foreground">
+              Сгенерируйте до 10 вариантов объявлений прямо сейчас. Чтобы сохранить в кампанию или загрузить YML — войдите.
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-4">
         {/* Левая панель: настройки */}
         <div className="space-y-4">
           <div className="glass rounded-2xl p-4">
             <h3 className="font-heading font-bold text-foreground mb-3">1. Источник</h3>
-            {feeds.length === 0 ? (
-              <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 text-xs">
-                <div className="font-bold text-amber-500 mb-1">Нет фидов</div>
-                <div className="text-muted-foreground mb-2">Загрузите YML или CSV — товары попадут в промпт.</div>
-                <button onClick={() => onNavigate("feeds")} className="text-neon-cyan hover:underline text-xs">
-                  → Загрузить фид
-                </button>
-              </div>
+            {!user ? (
+              <textarea
+                value={customContext}
+                onChange={(e) => setCustomContext(e.target.value)}
+                placeholder="Опишите товар или услугу: что продаёте, для кого, какие выгоды. Например: «Курсы Python с нуля онлайн, для взрослых, гарантия трудоустройства»"
+                rows={5}
+                className="w-full px-3 py-2 rounded-lg bg-muted/30 border border-border text-sm resize-none" />
+            ) : feeds.length === 0 ? (
+              <>
+                <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 text-xs mb-2">
+                  <div className="font-bold text-amber-500 mb-1">Нет фидов</div>
+                  <div className="text-muted-foreground mb-2">Загрузите YML или CSV — товары попадут в промпт.</div>
+                  <button onClick={() => onNavigate("feeds")} className="text-neon-cyan hover:underline text-xs">
+                    → Загрузить фид
+                  </button>
+                </div>
+                <textarea
+                  value={customContext}
+                  onChange={(e) => setCustomContext(e.target.value)}
+                  placeholder="Или опишите товар/услугу текстом"
+                  rows={3}
+                  className="w-full px-3 py-2 rounded-lg bg-muted/30 border border-border text-xs resize-none" />
+              </>
             ) : (
-              <select value={feedId ?? ""} onChange={(e) => setFeedId(parseInt(e.target.value, 10))}
-                className="w-full px-3 py-2 rounded-lg bg-muted/30 border border-border text-sm">
-                {feeds.map((f) => (
-                  <option key={f.id} value={f.id}>{f.name} · {f.products} товаров</option>
-                ))}
-              </select>
+              <>
+                <select value={feedId ?? ""} onChange={(e) => setFeedId(parseInt(e.target.value, 10))}
+                  className="w-full px-3 py-2 rounded-lg bg-muted/30 border border-border text-sm">
+                  {feeds.map((f) => (
+                    <option key={f.id} value={f.id}>{f.name} · {f.products} товаров</option>
+                  ))}
+                </select>
+                <textarea
+                  value={customContext}
+                  onChange={(e) => setCustomContext(e.target.value)}
+                  placeholder="Доп. контекст: УТП, скидки, бренд (необязательно)"
+                  rows={2}
+                  className="mt-2 w-full px-3 py-2 rounded-lg bg-muted/30 border border-border text-xs resize-none" />
+              </>
             )}
-            <textarea
-              value={customContext}
-              onChange={(e) => setCustomContext(e.target.value)}
-              placeholder="Доп. контекст: УТП, скидки, бренд (необязательно)"
-              rows={2}
-              className="mt-2 w-full px-3 py-2 rounded-lg bg-muted/30 border border-border text-xs resize-none" />
           </div>
 
           <div className="glass rounded-2xl p-4">
@@ -306,34 +332,51 @@ export default function AiGenerator({ onNavigate }: AiGeneratorProps) {
           {results.length > 0 && (
             <>
               {/* Шапка с действиями */}
-              <div className="glass rounded-2xl p-3 flex items-center gap-2 flex-wrap">
-                <button onClick={toggleAll}
-                  className="px-3 py-1.5 rounded-lg glass text-xs font-semibold hover:bg-muted/30 flex items-center gap-1">
-                  <Icon name={selected.size === results.length ? "CheckSquare" : "Square"} size={12} />
-                  {selected.size === results.length ? "Снять все" : "Выбрать все"}
-                </button>
-                <div className="text-xs text-muted-foreground">
-                  Выбрано: <span className="font-bold text-foreground">{selected.size}</span> из {results.length}
+              {user ? (
+                <div className="glass rounded-2xl p-3 flex items-center gap-2 flex-wrap">
+                  <button onClick={toggleAll}
+                    className="px-3 py-1.5 rounded-lg glass text-xs font-semibold hover:bg-muted/30 flex items-center gap-1">
+                    <Icon name={selected.size === results.length ? "CheckSquare" : "Square"} size={12} />
+                    {selected.size === results.length ? "Снять все" : "Выбрать все"}
+                  </button>
+                  <div className="text-xs text-muted-foreground">
+                    Выбрано: <span className="font-bold text-foreground">{selected.size}</span> из {results.length}
+                  </div>
+                  <div className="flex-1" />
+                  <select value={targetGroupId ?? ""} onChange={(e) => setTargetGroupId(parseInt(e.target.value, 10))}
+                    className="px-3 py-1.5 rounded-lg bg-muted/30 border border-border text-xs flex-1 min-w-[200px]">
+                    <option value="">— выберите группу —</option>
+                    {groups.map((g) => (
+                      <option key={g.id} value={g.id}>
+                        {g.campaign_name} → {g.name} ({g.ads_count})
+                      </option>
+                    ))}
+                  </select>
+                  <button onClick={saveToCampaign} disabled={saving || selected.size === 0 || !targetGroupId}
+                    className="px-3 py-1.5 rounded-lg text-xs font-bold text-background flex items-center gap-1 disabled:opacity-50"
+                    style={{ background: "linear-gradient(135deg, hsl(185,100%,55%), hsl(260,80%,65%))" }}>
+                    {saving ? <Icon name="Loader2" size={12} className="animate-spin" /> : <Icon name="Save" size={12} />}
+                    В группу
+                  </button>
                 </div>
-                <div className="flex-1" />
-                <select value={targetGroupId ?? ""} onChange={(e) => setTargetGroupId(parseInt(e.target.value, 10))}
-                  className="px-3 py-1.5 rounded-lg bg-muted/30 border border-border text-xs flex-1 min-w-[200px]">
-                  <option value="">— выберите группу —</option>
-                  {groups.map((g) => (
-                    <option key={g.id} value={g.id}>
-                      {g.campaign_name} → {g.name} ({g.ads_count})
-                    </option>
-                  ))}
-                </select>
-                <button onClick={saveToCampaign} disabled={saving || selected.size === 0 || !targetGroupId}
-                  className="px-3 py-1.5 rounded-lg text-xs font-bold text-background flex items-center gap-1 disabled:opacity-50"
-                  style={{ background: "linear-gradient(135deg, hsl(185,100%,55%), hsl(260,80%,65%))" }}>
-                  {saving ? <Icon name="Loader2" size={12} className="animate-spin" /> : <Icon name="Save" size={12} />}
-                  В группу
-                </button>
-              </div>
+              ) : (
+                <div className="glass rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3 border border-neon-cyan/40 bg-neon-cyan/5">
+                  <Icon name="Sparkles" size={20} className="text-neon-cyan" />
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold text-foreground text-sm">Сохраните результаты</div>
+                    <div className="text-xs text-muted-foreground">
+                      Войдите — и сохраняйте объявления в кампании, добавляйте фразы и экспортируйте в Директ Коммандер
+                    </div>
+                  </div>
+                  <button onClick={() => onNavigate("services")}
+                    className="px-4 py-2 rounded-xl text-xs font-bold text-background flex items-center gap-1"
+                    style={{ background: "linear-gradient(135deg, hsl(185,100%,55%), hsl(260,80%,65%))" }}>
+                    <Icon name="LogIn" size={12} /> Создать аккаунт
+                  </button>
+                </div>
+              )}
 
-              {targetGroup === undefined && groups.length === 0 && (
+              {user && targetGroup === undefined && groups.length === 0 && (
                 <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 text-xs flex items-center gap-2">
                   <Icon name="Info" size={14} className="text-amber-500" />
                   <div>
@@ -352,17 +395,19 @@ export default function AiGenerator({ onNavigate }: AiGeneratorProps) {
                   const titleFull = `${a.title1} — ${a.title2}`.trim();
                   return (
                     <div key={i}
-                      className={`glass rounded-2xl p-4 border-2 transition-colors cursor-pointer ${
+                      className={`glass rounded-2xl p-4 border-2 transition-colors ${user ? "cursor-pointer" : ""} ${
                         isSelected ? "border-neon-cyan" : "border-transparent hover:border-border"
                       }`}
-                      onClick={() => toggle(i)}>
+                      onClick={() => user && toggle(i)}>
                       <div className="flex items-center justify-between gap-2 mb-2">
                         <div className="flex items-center gap-2">
-                          <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center ${
-                            isSelected ? "border-neon-cyan bg-neon-cyan" : "border-muted-foreground"
-                          }`}>
-                            {isSelected && <Icon name="Check" size={11} className="text-background" />}
-                          </div>
+                          {user && (
+                            <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center ${
+                              isSelected ? "border-neon-cyan bg-neon-cyan" : "border-muted-foreground"
+                            }`}>
+                              {isSelected && <Icon name="Check" size={11} className="text-background" />}
+                            </div>
+                          )}
                           <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">
                             Вариант #{i + 1}
                           </span>
