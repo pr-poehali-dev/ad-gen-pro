@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
 import Icon from "@/components/ui/icon";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth, authHeaders } from "@/contexts/AuthContext";
 import { Page } from "@/App";
 import { ydApi } from "./yd/api";
 import { CAMPAIGN_TYPE_META } from "./yd/types";
 import type { YdCampaignListItem } from "./yd/types";
+import func2url from "../../backend/func2url.json";
+
+const DASHBOARD_URL = (func2url as Record<string, string>).dashboard;
 
 interface InsightsProps {
   onNavigate: (page: Page) => void;
@@ -21,6 +24,13 @@ interface Insight {
   target: Page;
 }
 
+interface DashboardData {
+  schedule: { upcoming: number; overdue: number; done: number };
+  automations: { total: number; enabled: number; total_runs: number; total_triggers: number };
+  feeds: { count: number; products: number };
+  leads: { total: number; new: number; won: number };
+}
+
 const severityMeta = {
   warning: { color: "hsl(0,75%,60%)", icon: "AlertTriangle", label: "Внимание" },
   opportunity: { color: "hsl(145,70%,50%)", icon: "Sparkles", label: "Возможность" },
@@ -31,6 +41,7 @@ export default function Insights({ onNavigate }: InsightsProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [items, setItems] = useState<YdCampaignListItem[]>([]);
+  const [overview, setOverview] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [resolved, setResolved] = useState<Set<string>>(() => {
     try {
@@ -43,8 +54,15 @@ export default function Insights({ onNavigate }: InsightsProps) {
 
   useEffect(() => {
     if (!user) { setLoading(false); return; }
-    ydApi.list()
-      .then((d) => setItems(d.campaigns))
+    setLoading(true);
+    Promise.all([
+      ydApi.list().then((d) => d.campaigns),
+      fetch(`${DASHBOARD_URL}?action=overview`, { headers: authHeaders() }).then((r) => r.json()),
+    ])
+      .then(([camps, ov]) => {
+        setItems(camps || []);
+        if (!ov.error) setOverview(ov as DashboardData);
+      })
       .catch((e) => toast({ title: "Не удалось загрузить", description: String(e) }))
       .finally(() => setLoading(false));
   }, [user, toast]);
@@ -58,22 +76,25 @@ export default function Insights({ onNavigate }: InsightsProps) {
     toast({ title: "Инсайт отмечен решённым" });
   };
 
+  const reset = () => {
+    setResolved(new Set());
+    try { localStorage.removeItem("matad_resolved_insights"); } catch {/* noop */}
+  };
+
   if (!user) {
     return (
       <div className="p-4 md:p-8 pt-16 md:pt-8 animate-fade-in">
         <div className="glass rounded-2xl p-8 text-center max-w-md mx-auto">
           <Icon name="Lock" size={32} className="text-neon-cyan mx-auto mb-3" />
           <div className="font-bold text-foreground mb-1">Войдите в аккаунт</div>
-          <div className="text-sm text-muted-foreground">Инсайты строятся по вашим кампаниям</div>
+          <div className="text-sm text-muted-foreground">Инсайты строятся по вашим данным</div>
         </div>
       </div>
     );
   }
 
-  // Реальные инсайты по данным кампаний
   const insights: Insight[] = [];
 
-  // Если кампаний вообще нет
   if (!loading && items.length === 0) {
     insights.push({
       id: "no-campaigns",
@@ -87,7 +108,6 @@ export default function Insights({ onNavigate }: InsightsProps) {
   }
 
   items.forEach((c) => {
-    // Мало объявлений в кампании — низкое качество и непокрытые группы
     if (c.groups_count > 0 && c.ads_count < c.groups_count * 2) {
       insights.push({
         id: `ads-${c.id}`,
@@ -99,8 +119,6 @@ export default function Insights({ onNavigate }: InsightsProps) {
         target: "campaigns",
       });
     }
-
-    // Без ключевых фраз — кампания не покажется
     if (c.groups_count > 0 && c.keywords_count === 0 && c.campaign_type !== "master") {
       insights.push({
         id: `kw-${c.id}`,
@@ -112,8 +130,6 @@ export default function Insights({ onNavigate }: InsightsProps) {
         target: "campaigns",
       });
     }
-
-    // Кампания без бюджета
     if (c.daily_budget === 0 && c.weekly_budget === 0 && c.status !== "draft") {
       insights.push({
         id: `budget-${c.id}`,
@@ -125,8 +141,6 @@ export default function Insights({ onNavigate }: InsightsProps) {
         target: "campaigns",
       });
     }
-
-    // Долгий черновик
     if (c.status === "draft" && c.step < 6) {
       const daysOld = Math.floor((Date.now() - new Date(c.updated_at).getTime()) / 86400000);
       if (daysOld >= 2) {
@@ -141,8 +155,6 @@ export default function Insights({ onNavigate }: InsightsProps) {
         });
       }
     }
-
-    // Готовая, но не экспортирована
     if (c.status === "ready") {
       insights.push({
         id: `export-${c.id}`,
@@ -156,7 +168,76 @@ export default function Insights({ onNavigate }: InsightsProps) {
     }
   });
 
-  // Общие подсказки
+  if (overview && overview.schedule.overdue > 0) {
+    insights.push({
+      id: "overdue-events",
+      severity: "warning",
+      title: `Просрочено событий: ${overview.schedule.overdue}`,
+      description: "В календаре есть запланированные действия, которые уже прошли. Проверьте и отметьте «готово».",
+      action: "Открыть календарь",
+      impact: "Не пропустить запуск",
+      target: "calendar",
+    });
+  }
+  if (items.length >= 2 && overview && overview.schedule.upcoming === 0) {
+    insights.push({
+      id: "no-schedule",
+      severity: "tip",
+      title: "Запланируйте события",
+      description: "Используйте календарь, чтобы заранее планировать запуск, паузу или отчёт по кампаниям.",
+      action: "Добавить событие",
+      impact: "Меньше рутины",
+      target: "calendar",
+    });
+  }
+
+  if (items.length >= 1 && overview && overview.automations.total === 0) {
+    insights.push({
+      id: "no-automations",
+      severity: "opportunity",
+      title: "Включите автоматизации",
+      description: "Настройте правила: например, «понизить ставку, если CTR < 2% за 7 дней» — будут срабатывать без участия.",
+      action: "Создать правило",
+      impact: "Экономия 5+ часов/нед",
+      target: "automations",
+    });
+  }
+  if (overview && overview.automations.total > 0 && overview.automations.enabled === 0) {
+    insights.push({
+      id: "all-disabled",
+      severity: "warning",
+      title: "Все автоматизации выключены",
+      description: `У вас ${overview.automations.total} правил, но ни одно не активно. Включите нужные.`,
+      action: "Открыть",
+      impact: "Правила заработают",
+      target: "automations",
+    });
+  }
+
+  if (items.length >= 1 && overview && overview.feeds.count === 0) {
+    insights.push({
+      id: "no-feeds",
+      severity: "opportunity",
+      title: "Загрузите товарный фид",
+      description: "Если у вас интернет-магазин — фид (YML/CSV) даёт сотни динамических объявлений автоматически.",
+      action: "Загрузить",
+      impact: "10x больше объявлений",
+      target: "feeds",
+    });
+  }
+
+  if (overview && overview.leads.new > 5) {
+    insights.push({
+      id: "many-new-leads",
+      severity: "warning",
+      title: `${overview.leads.new} новых лидов ждут обработки`,
+      description: "Свяжитесь с клиентами в течение 30 минут — конверсия в сделку выше в 7 раз при быстром отклике.",
+      action: "Открыть CRM",
+      impact: "+конверсия в сделку",
+      target: "services",
+    });
+  }
+
   if (items.length > 0 && items.every((c) => c.campaign_type !== "master")) {
     insights.push({
       id: "tip-master",
@@ -168,16 +249,15 @@ export default function Insights({ onNavigate }: InsightsProps) {
       target: "campaigns",
     });
   }
-
-  if (items.length >= 3) {
+  if (items.length === 0 && (!overview || overview.feeds.count === 0)) {
     insights.push({
-      id: "tip-feeds",
-      severity: "opportunity",
-      title: "Подключите товарный фид",
-      description: "Загрузите YML или CSV с товарами — это даст возможность создавать динамические объявления.",
-      action: "Загрузить фид",
-      impact: "Сотни объявлений за минуту",
-      target: "feeds",
+      id: "tip-templates",
+      severity: "tip",
+      title: "Стартуйте с шаблона",
+      description: "В разделе «Шаблоны» — 10 готовых кампаний по нишам (e-com, B2B, инфобиз, локальный бизнес).",
+      action: "Открыть шаблоны",
+      impact: "Быстрый старт",
+      target: "templates",
     });
   }
 
@@ -191,15 +271,22 @@ export default function Insights({ onNavigate }: InsightsProps) {
 
   return (
     <div className="p-4 md:p-8 pt-16 md:pt-8 animate-fade-in">
-      <div className="mb-6 md:mb-8">
-        <div className="flex items-center gap-2 text-xs text-neon-cyan mb-2 uppercase tracking-widest font-bold">
-          <Icon name="Brain" size={13} />
-          Анализируем ваши кампании
+      <div className="flex items-start justify-between gap-3 flex-wrap mb-6 md:mb-8">
+        <div>
+          <div className="flex items-center gap-2 text-xs text-neon-cyan mb-2 uppercase tracking-widest font-bold">
+            <Icon name="Brain" size={13} />
+            Анализируем ваш кабинет
+          </div>
+          <h1 className="font-heading text-xl md:text-2xl font-bold text-foreground">Инсайты и рекомендации</h1>
+          <p className="text-muted-foreground text-sm mt-1">
+            AI находит проблемы и точки роста по реальным данным: кампаниям, расписанию, автоматизациям, фидам и лидам
+          </p>
         </div>
-        <h1 className="font-heading text-xl md:text-2xl font-bold text-foreground">Инсайты и рекомендации</h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          AI находит проблемы и точки роста по реальным данным из вашего кабинета
-        </p>
+        {resolved.size > 0 && (
+          <button onClick={reset} className="text-xs px-3 py-2 rounded-xl glass hover:bg-muted/30 flex items-center gap-1.5">
+            <Icon name="RotateCcw" size={12} /> Показать скрытые ({resolved.size})
+          </button>
+        )}
       </div>
 
       {loading ? (

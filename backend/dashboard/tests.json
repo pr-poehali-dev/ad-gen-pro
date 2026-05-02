@@ -1,0 +1,23 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Без токена — 401",
+      "method": "GET",
+      "path": "/?action=overview",
+      "expectedStatus": 401
+    },
+    {
+      "name": "Невалидный токен — 401",
+      "method": "GET",
+      "path": "/?action=overview",
+      "headers": {"X-Auth-Token": "invalid"},
+      "expectedStatus": 401
+    }
+  ]
+}
