@@ -1,0 +1,23 @@
+{
+  "tests": [
+    {
+      "name": "Без токена — 403",
+      "method": "GET",
+      "path": "/?action=overview",
+      "expectedStatus": 403
+    },
+    {
+      "name": "OPTIONS — 200",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Невалидное действие — 400",
+      "method": "GET",
+      "path": "/?action=unknown",
+      "headers": {"X-Auth-Token": "invalid-token"},
+      "expectedStatus": 403
+    }
+  ]
+}

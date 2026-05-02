@@ -20,6 +20,7 @@ import Breadcrumbs from "./components/Breadcrumbs";
 import LegalDisclaimer from "./components/LegalDisclaimer";
 import Auth from "./pages/Auth";
 import PaymentSuccess from "./pages/PaymentSuccess";
+import AdminLayout from "./pages/admin/AdminLayout";
 import useSwipeGesture from "./hooks/useSwipeGesture";
 import { useCloudSync } from "./hooks/useCloudSync";
 import { useAuth } from "./contexts/AuthContext";
@@ -99,12 +100,20 @@ const initialExportHistory: ExportRecord[] = [
 ];
 
 export default function App() {
-  const isSuccessPage = typeof window !== "undefined" && window.location.pathname.startsWith("/payment-success");
-  if (isSuccessPage) {
+  const path = typeof window !== "undefined" ? window.location.pathname : "";
+  if (path.startsWith("/payment-success")) {
     return (
       <TooltipProvider>
         <Toaster />
         <PaymentSuccess />
+      </TooltipProvider>
+    );
+  }
+  if (path.startsWith("/admin")) {
+    return (
+      <TooltipProvider>
+        <Toaster />
+        <AdminLayout />
       </TooltipProvider>
     );
   }
