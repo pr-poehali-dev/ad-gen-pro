@@ -54,7 +54,7 @@ def _create_session(cur, user_id: int, ua: str, ip: str) -> str:
 def _user_by_token(cur, token: str):
     safe = token.replace("'", "''")
     cur.execute(
-        f"SELECT u.id, u.email, u.name, u.company, u.role, u.plan "
+        f"SELECT u.id, u.email, u.name, u.company, u.role, u.plan, u.is_admin "
         f"FROM users u JOIN sessions s ON s.user_id = u.id "
         f"WHERE s.token = '{safe}' AND s.expires_at > NOW() LIMIT 1"
     )
@@ -111,10 +111,17 @@ def handler(event, context):
             pwd_hash = _hash_password(password)
             safe_name = name.replace("'", "''")[:255]
             safe_company = company.replace("'", "''")[:255]
+
+            # Первый зарегистрированный пользователь автоматически становится админом
+            cur.execute("SELECT COUNT(*) AS c FROM users")
+            is_first_user = (cur.fetchone()['c'] or 0) == 0
+            role_val = 'admin' if is_first_user else 'user'
+            is_admin_val = 'TRUE' if is_first_user else 'FALSE'
+
             cur.execute(
-                f"INSERT INTO users (email, password_hash, name, company) "
-                f"VALUES ('{safe_email}', '{pwd_hash}', '{safe_name}', '{safe_company}') "
-                f"RETURNING id, email, name, company, role, plan"
+                f"INSERT INTO users (email, password_hash, name, company, role, is_admin) "
+                f"VALUES ('{safe_email}', '{pwd_hash}', '{safe_name}', '{safe_company}', '{role_val}', {is_admin_val}) "
+                f"RETURNING id, email, name, company, role, plan, is_admin"
             )
             user = cur.fetchone()
             cur.execute(f"INSERT INTO user_state (user_id) VALUES ({user['id']}) ON CONFLICT (user_id) DO NOTHING")
@@ -129,7 +136,7 @@ def handler(event, context):
 
             safe_email = email.replace("'", "''")
             cur.execute(
-                f"SELECT id, email, password_hash, name, company, role, plan "
+                f"SELECT id, email, password_hash, name, company, role, plan, is_admin "
                 f"FROM users WHERE email = '{safe_email}' LIMIT 1"
             )
             row = cur.fetchone()
@@ -137,7 +144,7 @@ def handler(event, context):
                 return _resp(401, {'error': 'Неверный email или пароль'})
 
             new_token = _create_session(cur, row['id'], ua, ip)
-            user_data = {k: row[k] for k in ('id', 'email', 'name', 'company', 'role', 'plan')}
+            user_data = {k: row[k] for k in ('id', 'email', 'name', 'company', 'role', 'plan', 'is_admin')}
             return _resp(200, {'user': user_data, 'token': new_token})
 
         if method == 'GET' and action == 'me':

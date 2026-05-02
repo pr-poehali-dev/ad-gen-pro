@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
 import { useAuth } from "@/contexts/AuthContext";
+import Auth from "@/pages/Auth";
 import AdminOverview from "./AdminOverview";
 import AdminClients from "./AdminClients";
 import AdminOrders from "./AdminOrders";
@@ -22,8 +23,9 @@ const TABS: { id: TabId; label: string; icon: string }[] = [
 ];
 
 export default function AdminLayout() {
-  const { user, loading } = useAuth();
+  const { user, loading, logout } = useAuth();
   const [tab, setTab] = useState<TabId>("overview");
+  const [authOpen, setAuthOpen] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -43,19 +45,36 @@ export default function AdminLayout() {
     );
   }
 
-  const isAdmin = user && (user.role === "admin");
+  const isAdmin = !!(user && (user.role === "admin" || user.is_admin));
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="glass rounded-3xl p-8 max-w-md text-center">
-          <Icon name="Lock" size={40} className="text-neon-cyan mx-auto mb-4" />
-          <h1 className="font-heading text-2xl font-bold text-foreground mb-2">Нужен вход</h1>
-          <p className="text-muted-foreground mb-6">Доступ к админ-кабинету только для авторизованных администраторов</p>
-          <a href="/" className="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-bold text-background"
+      <div className="min-h-screen flex items-center justify-center p-4 relative">
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute top-[-15%] right-[-10%] w-[600px] h-[600px] rounded-full opacity-20"
+            style={{ background: 'radial-gradient(circle, hsl(185,100%,55%), transparent 70%)' }} />
+          <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full opacity-20"
+            style={{ background: 'radial-gradient(circle, hsl(260,80%,65%), transparent 70%)' }} />
+        </div>
+        <div className="relative glass rounded-3xl p-6 md:p-8 max-w-md w-full text-center">
+          <div className="w-14 h-14 mx-auto mb-4 rounded-2xl flex items-center justify-center"
             style={{ background: "linear-gradient(135deg, hsl(185,100%,55%), hsl(260,80%,65%))" }}>
-            <Icon name="LogIn" size={15} /> На главную
+            <Icon name="Shield" size={26} className="text-background" />
+          </div>
+          <h1 className="font-heading text-2xl font-bold text-foreground mb-2">Вход в Супер-Офис</h1>
+          <p className="text-sm text-muted-foreground mb-5">
+            Войдите с учётной записью администратора, чтобы открыть админ-кабинет
+          </p>
+          <button
+            onClick={() => setAuthOpen(true)}
+            className="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-bold text-background w-full justify-center"
+            style={{ background: "linear-gradient(135deg, hsl(185,100%,55%), hsl(260,80%,65%))" }}>
+            <Icon name="LogIn" size={15} /> Войти
+          </button>
+          <a href="/" className="block mt-3 text-xs text-muted-foreground hover:text-foreground">
+            ← вернуться на главную
           </a>
         </div>
+        {authOpen && <Auth onClose={() => setAuthOpen(false)} onSuccess={() => setAuthOpen(false)} />}
       </div>
     );
   }
@@ -89,9 +108,18 @@ export default function AdminLayout() {
               <div className="text-[10px] md:text-xs text-muted-foreground truncate">{user.email} · администратор</div>
             </div>
           </div>
-          <a href="/" className="hidden md:flex items-center gap-2 px-3 py-2 rounded-lg glass text-xs text-foreground hover:bg-muted/30">
-            <Icon name="ArrowLeft" size={13} /> К приложению
-          </a>
+          <div className="flex items-center gap-2">
+            <a href="/" className="hidden md:flex items-center gap-2 px-3 py-2 rounded-lg glass text-xs text-foreground hover:bg-muted/30">
+              <Icon name="ArrowLeft" size={13} /> К приложению
+            </a>
+            <button
+              onClick={() => logout()}
+              title="Выйти"
+              className="flex items-center gap-2 px-3 py-2 rounded-lg glass text-xs text-foreground hover:bg-muted/30">
+              <Icon name="LogOut" size={13} />
+              <span className="hidden md:inline">Выйти</span>
+            </button>
+          </div>
         </div>
 
         <nav className="px-2 md:px-4 pb-2 overflow-x-auto">

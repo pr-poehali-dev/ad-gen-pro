@@ -12,6 +12,7 @@ export interface AuthUser {
   company?: string;
   role?: string;
   plan?: string;
+  is_admin?: boolean;
 }
 
 interface AuthContextValue {
