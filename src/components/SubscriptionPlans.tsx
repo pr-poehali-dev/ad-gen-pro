@@ -3,6 +3,7 @@ import Icon from "@/components/ui/icon";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useYookassa, openPaymentPage } from "@/components/extensions/yookassa/useYookassa";
+import { reachGoal } from "@/lib/metrika";
 import func2url from "../../backend/func2url.json";
 
 const YOOKASSA_API_URL = (func2url as Record<string, string>)["yookassa-yookassa"];
@@ -94,6 +95,7 @@ export default function SubscriptionPlans() {
       return;
     }
     setBusyPlan(plan.id);
+    reachGoal("subscription_click", { plan: plan.id, price: plan.price });
     const origin = typeof window !== "undefined" ? window.location.origin : "";
     const response = await createPayment({
       amount: plan.price,
@@ -104,6 +106,7 @@ export default function SubscriptionPlans() {
       cartItems: [{ id: plan.id, name: `Тариф «${plan.name}»`, price: plan.price, quantity: 1 }],
     });
     if (response?.payment_url) {
+      reachGoal("subscription_payment_created", { plan: plan.id, price: plan.price, order: response.order_number });
       openPaymentPage(response.payment_url);
     }
     setBusyPlan(null);

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import Icon from "@/components/ui/icon";
+import { reachGoal } from "@/lib/metrika";
 
 export default function PaymentSuccess() {
   const [orderNumber, setOrderNumber] = useState<string>("");
@@ -7,7 +8,9 @@ export default function PaymentSuccess() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
-    setOrderNumber(params.get("order") || "");
+    const order = params.get("order") || "";
+    setOrderNumber(order);
+    reachGoal("payment_success", { order });
   }, []);
 
   return (

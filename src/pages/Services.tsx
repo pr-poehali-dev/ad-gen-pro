@@ -2,6 +2,7 @@ import { useState } from "react";
 import Icon from "@/components/ui/icon";
 import { Page } from "@/App";
 import { useToast } from "@/hooks/use-toast";
+import { reachGoal } from "@/lib/metrika";
 import SubscriptionPlans from "@/components/SubscriptionPlans";
 
 interface ServicesProps {
@@ -121,6 +122,7 @@ export default function Services({ onNavigate }: ServicesProps) {
   const requestService = (s: Service) => {
     setActiveService(s);
     setForm({ name: "", phone: "", email: "", comment: "" });
+    reachGoal("lead_form_open", { service: s.id });
   };
 
   const submitRequest = () => {
@@ -143,6 +145,8 @@ export default function Services({ onNavigate }: ServicesProps) {
         });
         localStorage.setItem("matad_leads", JSON.stringify(all));
       } catch {/* noop */}
+      reachGoal("lead_form_submit", { service: activeService.id });
+      reachGoal("service_request", { service: activeService.id });
       toast({ title: "Заявка отправлена", description: `Менеджер свяжется по «${activeService.title}» в течение 30 минут` });
       setSubmitting(false);
       setActiveService(null);

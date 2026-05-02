@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from "react";
+import { reachGoal } from "@/lib/metrika";
 
 const AUTH_URL = "https://functions.poehali.dev/e6567563-2137-43b9-91a0-65fc53ed8612";
 const DATA_URL = "https://functions.poehali.dev/0d4a0909-4bed-4bf0-b882-e156f1635c92";
@@ -94,6 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!res.ok) throw new Error(data.error || "Не удалось войти");
     persistToken(data.token);
     setUser(data.user);
+    reachGoal("login");
   };
 
   const register = async (email: string, password: string, name?: string, company?: string) => {
@@ -106,6 +108,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!res.ok) throw new Error(data.error || "Не удалось зарегистрироваться");
     persistToken(data.token);
     setUser(data.user);
+    reachGoal("registration");
   };
 
   const logout = async () => {
