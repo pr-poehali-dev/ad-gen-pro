@@ -92,7 +92,7 @@ export default function Insights({ campaigns, onNavigate }: InsightsProps) {
     id: id++,
     severity: "tip",
     title: "Лучшее время запуска: вторник 10:00",
-    description: "По данным AdFlow, ваша аудитория активнее всего во вторник утром. Запланируйте старт акций на этот слот.",
+    description: "По данным mat-ad.ru, ваша аудитория активнее всего во вторник утром. Запланируйте старт акций на этот слот.",
     action: "Открыть планировщик",
     impact: "+12% к CTR",
   });

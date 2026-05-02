@@ -98,7 +98,7 @@ export default function Sidebar({
             </div>
             {!collapsed && (
               <div className="text-left min-w-0">
-                <div className="font-heading font-bold text-base text-foreground tracking-tight truncate">AdFlow</div>
+                <div className="font-heading font-bold text-base text-foreground tracking-tight truncate">mat-ad.ru</div>
                 <div className="text-[10px] text-muted-foreground font-medium tracking-widest uppercase">AI Agency</div>
               </div>
             )}

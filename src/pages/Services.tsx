@@ -120,7 +120,7 @@ export default function Services({ onNavigate }: ServicesProps) {
           Digital-агентство полного цикла
         </div>
         <h1 className="font-heading text-3xl font-bold text-foreground mb-2">
-          Услуги <span style={{ background: 'linear-gradient(135deg, hsl(185,100%,55%), hsl(260,80%,65%))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>AdFlow Agency</span>
+          Услуги <span style={{ background: 'linear-gradient(135deg, hsl(185,100%,55%), hsl(260,80%,65%))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>mat-ad.ru</span>
         </h1>
         <p className="text-muted-foreground">
           Подключите команду маркетологов и AI-агента к своему бизнесу — вырастем в выручке вместе

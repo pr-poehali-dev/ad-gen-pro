@@ -72,7 +72,7 @@ export default function FloatingAgent({ campaigns, feeds }: FloatingAgentProps) 
           <button onClick={() => setShowHint(false)} className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-card border border-border flex items-center justify-center">
             <Icon name="X" size={10} className="text-muted-foreground" />
           </button>
-          <div className="text-xs font-bold text-foreground mb-1">👋 Привет, я AdFlow Brain</div>
+          <div className="text-xs font-bold text-foreground mb-1">👋 Привет, я mat-ad.ru AI</div>
           <div className="text-[11px] text-muted-foreground">Спроси что-нибудь про твою рекламу — отвечу за секунды</div>
           <div className="absolute -bottom-2 right-8 w-4 h-4 rotate-45 glass border-r border-b border-border/50" />
         </div>
@@ -110,7 +110,7 @@ export default function FloatingAgent({ campaigns, feeds }: FloatingAgentProps) 
                 <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-neon-green border-2 border-card animate-pulse-slow" />
               </div>
               <div>
-                <div className="font-heading font-bold text-foreground text-sm">AdFlow Brain</div>
+                <div className="font-heading font-bold text-foreground text-sm">mat-ad.ru AI</div>
                 <div className="text-[10px] text-neon-green flex items-center gap-1">
                   <div className="w-1.5 h-1.5 rounded-full bg-neon-green animate-pulse-slow" />
                   Онлайн · GPT-4o
