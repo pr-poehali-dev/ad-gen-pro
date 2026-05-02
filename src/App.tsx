@@ -252,7 +252,7 @@ function MainApp() {
       case "ai":
         return <AiGenerator feeds={feeds} campaigns={campaigns} setCampaigns={setCampaigns} />;
       case "templates":
-        return <Templates />;
+        return <Templates onNavigate={setActivePage} />;
       case "campaigns":
         return <YdCampaigns />;
       case "calendar":

@@ -28,6 +28,18 @@ export default function YdCampaigns() {
 
   useEffect(() => { load(); }, [load]);
 
+  // Авто-открытие кампании по запросу извне (например, после применения шаблона)
+  useEffect(() => {
+    try {
+      const pending = localStorage.getItem("matad_open_campaign");
+      if (pending) {
+        const id = parseInt(pending, 10);
+        if (id > 0) setEditingId(id);
+        localStorage.removeItem("matad_open_campaign");
+      }
+    } catch {/* noop */}
+  }, []);
+
   const create = async () => {
     if (!newName.trim()) {
       toast({ title: "Введите название" });
