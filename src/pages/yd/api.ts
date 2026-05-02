@@ -1,6 +1,15 @@
 import { authHeaders } from "@/contexts/AuthContext";
 import func2url from "../../../backend/func2url.json";
-import type { YdCampaign, YdCampaignListItem, YdCampaignType } from "./types";
+import type { YdCampaign, YdCampaignListItem, YdCampaignType, YdAd } from "./types";
+
+export interface YdGroupListItem {
+  id: number;
+  name: string;
+  campaign_id: number;
+  campaign_name: string;
+  campaign_type: YdCampaignType;
+  ads_count: number;
+}
 
 const URL = (func2url as Record<string, string>)["yd-campaigns"];
 
@@ -31,5 +40,11 @@ export const ydApi = {
     call<{ ok: boolean }>("?action=delete", {
       method: "POST",
       body: JSON.stringify({ id }),
+    }),
+  groups: () => call<{ groups: YdGroupListItem[] }>("?action=groups"),
+  addAds: (group_id: number, ads: Partial<YdAd>[], keywords?: string[]) =>
+    call<{ ok: boolean; inserted: number; group_id: number; campaign_id: number }>("?action=add_ads", {
+      method: "POST",
+      body: JSON.stringify({ group_id, ads, keywords }),
     }),
 };

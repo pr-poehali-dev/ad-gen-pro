@@ -18,7 +18,7 @@
         "products": ["Куртка зимняя мужская", "Пальто женское", "Шапка вязаная"]
       },
       "expectedStatus": 200,
-      "expectedBody": {"ads": []},
+      "expectedBody": {"count": 2},
       "bodyMatcher": "partial"
     }
   ]

@@ -217,6 +217,79 @@ def _save_campaign(cur, user_id, body):
     return {'ok': True, 'id': cid}
 
 
+def _list_groups(cur, user_id):
+    """Список всех групп пользователя для выпадающего списка."""
+    cur.execute(f"""
+        SELECT g.id, g.name, g.campaign_id, c.name AS campaign_name, c.campaign_type,
+               (SELECT COUNT(*) FROM yd_ads a WHERE a.group_id = g.id) AS ads_count
+        FROM yd_ad_groups g
+        JOIN yd_campaigns c ON c.id = g.campaign_id
+        WHERE c.user_id = {int(user_id)}
+        ORDER BY c.updated_at DESC, g.sort_order, g.id
+        LIMIT 500
+    """)
+    return {'groups': [dict(r) for r in cur.fetchall()]}
+
+
+def _add_ads_to_group(cur, user_id, body):
+    """Добавить пачку объявлений в существующую группу (используется AI-генератором)."""
+    gid = int(body.get('group_id') or 0)
+    if not gid:
+        return {'error': 'group_id required'}
+    # Проверяем владельца
+    cur.execute(f"""
+        SELECT g.id, g.campaign_id FROM yd_ad_groups g
+        JOIN yd_campaigns c ON c.id = g.campaign_id
+        WHERE g.id = {gid} AND c.user_id = {int(user_id)} LIMIT 1
+    """)
+    row = cur.fetchone()
+    if not row:
+        return {'error': 'group not found'}
+
+    ads = body.get('ads') or []
+    if not ads:
+        return {'error': 'ads required'}
+
+    # Узнаём текущий max sort_order
+    cur.execute(f"SELECT COALESCE(MAX(sort_order), -1) AS m FROM yd_ads WHERE group_id = {gid}")
+    next_order = (cur.fetchone()['m'] or -1) + 1
+
+    inserted = 0
+    for a in ads:
+        ad_type = (a.get('ad_type') or 'text').replace("'", "''")[:32]
+        t1 = (a.get('title1') or '').replace("'", "''")[:56]
+        t2 = (a.get('title2') or '').replace("'", "''")[:30]
+        body_text = (a.get('body') or '').replace("'", "''")[:81]
+        disp = (a.get('display_url') or '').replace("'", "''")[:20]
+        href = (a.get('href') or '').replace("'", "''")[:2000]
+        img = (a.get('image_url') or '').replace("'", "''")[:2000]
+        sl = json.dumps(a.get('sitelinks') or []).replace("'", "''")
+        co = json.dumps(a.get('callouts') or []).replace("'", "''")
+        cur.execute(f"""
+            INSERT INTO yd_ads (group_id, ad_type, title1, title2, body, display_url, href, image_url, sitelinks, callouts, sort_order)
+            VALUES ({gid}, '{ad_type}', '{t1}', '{t2}', '{body_text}', '{disp}', '{href}', '{img}', '{sl}'::jsonb, '{co}'::jsonb, {next_order})
+        """)
+        next_order += 1
+        inserted += 1
+
+    # Обновляем updated_at кампании
+    cur.execute(f"UPDATE yd_campaigns SET updated_at = NOW() WHERE id = {int(row['campaign_id'])}")
+
+    # Добавим ключевые фразы (если переданы)
+    keywords = body.get('keywords') or []
+    if keywords:
+        for kw in keywords:
+            phrase = (kw if isinstance(kw, str) else (kw.get('phrase') or '')).replace("'", "''")[:4000]
+            if not phrase:
+                continue
+            cur.execute(f"""
+                INSERT INTO yd_keywords (group_id, phrase, bid, match_type)
+                VALUES ({gid}, '{phrase}', 0, 'broad')
+            """)
+
+    return {'ok': True, 'inserted': inserted, 'group_id': gid, 'campaign_id': row['campaign_id']}
+
+
 def _delete_campaign(cur, user_id, campaign_id):
     cid = int(campaign_id)
     cur.execute(f"SELECT id FROM yd_campaigns WHERE id = {cid} AND user_id = {int(user_id)} LIMIT 1")
@@ -282,6 +355,12 @@ def handler(event, context):
         if method == 'POST' and action == 'delete':
             cid = body.get('id') or 0
             return _resp(200, _delete_campaign(cur, uid, cid))
+
+        if method == 'GET' and action == 'groups':
+            return _resp(200, _list_groups(cur, uid))
+
+        if method == 'POST' and action == 'add_ads':
+            return _resp(200, _add_ads_to_group(cur, uid, body))
 
         return _resp(400, {'error': 'Неизвестное действие'})
 

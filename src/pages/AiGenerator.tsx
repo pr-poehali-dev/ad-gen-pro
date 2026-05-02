@@ -1,273 +1,420 @@
-import { useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Icon from "@/components/ui/icon";
 import { useToast } from "@/hooks/use-toast";
-import { Feed, Campaign } from "@/App";
+import { useAuth, authHeaders } from "@/contexts/AuthContext";
+import { Page } from "@/App";
+import { ydApi } from "./yd/api";
+import type { YdGroupListItem } from "./yd/api";
+import func2url from "../../backend/func2url.json";
 
-const GENERATE_ADS_URL = "https://functions.poehali.dev/d58c6f7e-cbc9-48cc-95b4-6bdcacfbc57c";
+const GENERATE_ADS_URL = (func2url as Record<string, string>)["generate-ads"];
+const FEEDS_URL = (func2url as Record<string, string>).feeds;
 
-const templates = [
-  { id: "search", label: "Поисковые", icon: "Search" },
-  { id: "banner", label: "Баннеры", icon: "Image" },
-  { id: "product", label: "Товарные", icon: "ShoppingBag" },
-  { id: "smart", label: "Смарт-баннеры", icon: "Sparkles" },
+interface AiGeneratorProps {
+  onNavigate: (page: Page) => void;
+}
+
+interface FeedRow {
+  id: number;
+  name: string;
+  type: string;
+  products: number;
+}
+
+const TEMPLATES = [
+  { id: "search", label: "Поиск", icon: "Search", desc: "Текстовое объявление в поиске" },
+  { id: "product", label: "Товары", icon: "ShoppingBag", desc: "С ценой и характеристиками" },
+  { id: "banner", label: "Баннер", icon: "Image", desc: "Медийный баннер" },
+  { id: "smart", label: "Смарт", icon: "Sparkles", desc: "Динамический баннер" },
 ];
 
-type AdResult = {
-  title: string;
-  description: string;
+const TONES = ["Продажи", "Экспертный", "Дружелюбный", "Срочность", "Выгода"];
+
+interface GeneratedAd {
+  title1: string;
+  title2: string;
+  body: string;
   predicted_ctr: number;
   quality_score: number;
   keywords: string[];
-};
-
-interface AiGeneratorProps {
-  feeds: Feed[];
-  campaigns: Campaign[];
-  setCampaigns: React.Dispatch<React.SetStateAction<Campaign[]>>;
 }
 
-export default function AiGenerator({ feeds, campaigns, setCampaigns }: AiGeneratorProps) {
+export default function AiGenerator({ onNavigate }: AiGeneratorProps) {
+  const { user } = useAuth();
   const { toast } = useToast();
-  const [activeTemplate, setActiveTemplate] = useState("search");
-  const [feedSelected, setFeedSelected] = useState(feeds[0]?.name || "");
+  const [feeds, setFeeds] = useState<FeedRow[]>([]);
+  const [groups, setGroups] = useState<YdGroupListItem[]>([]);
+  const [feedId, setFeedId] = useState<number | null>(null);
+  const [customContext, setCustomContext] = useState("");
   const [tone, setTone] = useState("Продажи");
+  const [adType, setAdType] = useState("search");
   const [count, setCount] = useState(3);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [results, setResults] = useState<AdResult[]>([]);
+  const [generating, setGenerating] = useState(false);
+  const [results, setResults] = useState<GeneratedAd[]>([]);
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [targetGroupId, setTargetGroupId] = useState<number | null>(null);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [addedIds, setAddedIds] = useState<Set<number>>(new Set());
-  const [exportedAll, setExportedAll] = useState(false);
 
-  const handleGenerate = async () => {
-    setIsGenerating(true);
-    setError(null);
-    setAddedIds(new Set());
-    setExportedAll(false);
+  const load = useCallback(async () => {
+    if (!user) return;
     try {
-      const resp = await fetch(GENERATE_ADS_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ feed_name: feedSelected, ad_type: activeTemplate, tone, count }),
-      });
-      const data = await resp.json();
-      if (!resp.ok) throw new Error(data.error || "Ошибка генерации");
-      setResults(data.ads || []);
+      const [feedsRes, groupsRes] = await Promise.all([
+        fetch(`${FEEDS_URL}?action=list`, { headers: authHeaders() }).then((r) => r.json()),
+        ydApi.groups(),
+      ]);
+      const list: FeedRow[] = feedsRes.feeds || [];
+      setFeeds(list);
+      if (list.length > 0 && !feedId) setFeedId(list[0].id);
+      setGroups(groupsRes.groups || []);
+      if (groupsRes.groups && groupsRes.groups.length > 0 && !targetGroupId) {
+        setTargetGroupId(groupsRes.groups[0].id);
+      }
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Ошибка генерации");
+      toast({ title: "Не удалось загрузить", description: String(e) });
+    }
+  }, [user, toast, feedId, targetGroupId]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const generate = async () => {
+    setGenerating(true);
+    setResults([]);
+    setSelected(new Set());
+    setError(null);
+    try {
+      const feed = feeds.find((f) => f.id === feedId);
+      const body: Record<string, unknown> = {
+        ad_type: adType,
+        tone,
+        count,
+        feed_name: feed?.name || "каталог",
+        context: customContext || undefined,
+      };
+      if (feedId) body.feed_id = feedId;
+      const res = await fetch(GENERATE_ADS_URL, {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify(body),
+      });
+      const d = await res.json();
+      if (!res.ok || d.error) throw new Error(d.error || "Ошибка генерации");
+      setResults(d.ads || []);
+      toast({ title: "Сгенерировано", description: `${d.count} объявлений` });
+    } catch (e) {
+      const msg = String(e);
+      setError(msg);
+      toast({ title: "Ошибка", description: msg });
     } finally {
-      setIsGenerating(false);
+      setGenerating(false);
     }
   };
 
-  const handleCopy = (ad: AdResult, idx: number) => {
-    const text = `${ad.title}\n${ad.description}`;
-    navigator.clipboard.writeText(text).then(() => {
-      toast({ title: "Скопировано!", description: "Объявление скопировано в буфер обмена" });
-    });
+  const toggle = (i: number) => {
+    const next = new Set(selected);
+    if (next.has(i)) next.delete(i); else next.add(i);
+    setSelected(next);
   };
 
-  const handleAddToCampaign = (ad: AdResult, idx: number) => {
-    const draft = campaigns.find(c => c.status === "draft");
-    if (draft) {
-      setCampaigns(prev => prev.map(c => c.id === draft.id ? { ...c, ads: c.ads + 1 } : c));
-      toast({ title: "Добавлено в кампанию", description: `«${ad.title}» → ${draft.name}` });
-    } else {
-      toast({ title: "Нет черновиков", description: "Создайте кампанию в разделе «Кампании»" });
+  const toggleAll = () => {
+    if (selected.size === results.length) setSelected(new Set());
+    else setSelected(new Set(results.map((_, i) => i)));
+  };
+
+  const saveToCampaign = async () => {
+    if (!targetGroupId) {
+      toast({ title: "Выберите группу" });
+      return;
     }
-    setAddedIds(prev => new Set(prev).add(idx));
+    if (selected.size === 0) {
+      toast({ title: "Отметьте объявления" });
+      return;
+    }
+    setSaving(true);
+    try {
+      const adsToSave = Array.from(selected).map((i) => results[i]).map((a) => ({
+        ad_type: adType === "banner" || adType === "smart" ? "network_image" : "text",
+        title1: a.title1,
+        title2: a.title2,
+        body: a.body,
+        display_url: "",
+        href: "",
+        sitelinks: [],
+        callouts: [],
+      }));
+      const allKeywords = Array.from(selected)
+        .flatMap((i) => results[i].keywords || [])
+        .filter(Boolean);
+      const uniqueKw = Array.from(new Set(allKeywords));
+
+      const res = await ydApi.addAds(targetGroupId, adsToSave, uniqueKw);
+      toast({
+        title: "Сохранено в группу",
+        description: `Добавлено объявлений: ${res.inserted}, фраз: ${uniqueKw.length}`,
+      });
+      try {
+        localStorage.setItem("matad_open_campaign", String(res.campaign_id));
+      } catch {/* noop */}
+      onNavigate("campaigns");
+    } catch (e) {
+      toast({ title: "Ошибка", description: String(e) });
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleExportAll = () => {
-    if (results.length === 0) return;
-    const text = results.map((ad, i) =>
-      `--- Объявление ${i + 1} ---\nЗаголовок: ${ad.title}\nОписание: ${ad.description}\nCTR: ${ad.predicted_ctr}%\nКлючевые слова: ${ad.keywords.join(", ")}`
-    ).join("\n\n");
-    const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `adflow_ads_${Date.now()}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
-    setExportedAll(true);
-    toast({ title: "Экспорт готов", description: `${results.length} объявлений сохранено в файл` });
+  const copyAd = (a: GeneratedAd) => {
+    const text = `${a.title1} — ${a.title2}\n${a.body}\n\nКлючевые: ${(a.keywords || []).join(", ")}`;
+    navigator.clipboard.writeText(text);
+    toast({ title: "Скопировано в буфер" });
   };
+
+  if (!user) {
+    return (
+      <div className="p-4 md:p-8 pt-16 md:pt-8 animate-fade-in">
+        <div className="glass rounded-2xl p-8 text-center max-w-md mx-auto">
+          <Icon name="Lock" size={32} className="text-neon-cyan mx-auto mb-3" />
+          <div className="font-bold text-foreground mb-1">Войдите в аккаунт</div>
+          <div className="text-sm text-muted-foreground">Генерация объявлений работает с вашими фидами и кампаниями</div>
+        </div>
+      </div>
+    );
+  }
+
+  const targetGroup = groups.find((g) => g.id === targetGroupId);
 
   return (
     <div className="p-4 md:p-8 pt-16 md:pt-8 animate-fade-in">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6 md:mb-8">
-        <div>
-          <h1 className="font-heading text-xl md:text-2xl font-bold text-foreground">ИИ-генерация объявлений</h1>
-          <p className="text-muted-foreground text-sm mt-1">Создайте объявления за секунды на основе вашего каталога</p>
+      <div className="mb-6">
+        <div className="flex items-center gap-2 text-xs text-neon-cyan mb-2 uppercase tracking-widest font-bold">
+          <Icon name="Sparkles" size={13} /> AI-генерация на GPT-4o
         </div>
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg glass text-xs self-start md:self-auto">
-          <div className="w-2 h-2 rounded-full animate-pulse-slow bg-neon-violet" />
-          <span className="text-muted-foreground">polza.ai · <strong className="text-foreground">GPT-4o</strong></span>
-        </div>
+        <h1 className="font-heading text-xl md:text-2xl font-bold text-foreground">Генератор объявлений</h1>
+        <p className="text-muted-foreground text-sm mt-1">
+          Подгружает товары из фида, генерирует объявления и сохраняет их прямо в группу кампании
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        <div className="lg:col-span-2 space-y-5">
-          <div className="glass rounded-2xl p-5">
-            <h3 className="font-heading font-bold text-sm text-foreground mb-4">Тип объявления</h3>
-            <div className="grid grid-cols-2 gap-2">
-              {templates.map((t) => (
-                <button key={t.id} onClick={() => setActiveTemplate(t.id)}
-                  className={`flex items-center gap-2 p-3 rounded-xl text-sm font-medium transition-all ${activeTemplate === t.id ? "text-background" : "glass text-muted-foreground hover:text-foreground"}`}
-                  style={activeTemplate === t.id ? { background: 'linear-gradient(135deg, hsl(260,80%,65%), hsl(290,70%,60%))', boxShadow: '0 4px 15px rgba(140,100,240,0.3)' } : {}}>
-                  <Icon name={t.icon} size={16} />
-                  {t.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="glass rounded-2xl p-5">
-            <h3 className="font-heading font-bold text-sm text-foreground mb-4">Источник данных</h3>
+      <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-4">
+        {/* Левая панель: настройки */}
+        <div className="space-y-4">
+          <div className="glass rounded-2xl p-4">
+            <h3 className="font-heading font-bold text-foreground mb-3">1. Источник</h3>
             {feeds.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Нет загруженных фидов. Добавьте фид в разделе «Фиды».</p>
-            ) : (
-              <div className="space-y-2">
-                {feeds.map((f) => (
-                  <button key={f.id} onClick={() => setFeedSelected(f.name)}
-                    className={`w-full flex items-center gap-3 p-3 rounded-xl text-sm transition-all ${feedSelected === f.name ? "border border-neon-cyan/40 text-foreground" : "glass text-muted-foreground hover:text-foreground"}`}
-                    style={feedSelected === f.name ? { background: 'rgba(0,220,230,0.08)' } : {}}>
-                    <Icon name="Database" size={15} className={feedSelected === f.name ? "text-neon-cyan" : ""} />
-                    <span className="flex-1 text-left truncate">{f.name}</span>
-                    <span className="text-[10px] text-muted-foreground flex-shrink-0">{f.products.toLocaleString("ru-RU")} товаров</span>
-                    {feedSelected === f.name && <Icon name="Check" size={14} className="text-neon-cyan" />}
-                  </button>
-                ))}
+              <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 text-xs">
+                <div className="font-bold text-amber-500 mb-1">Нет фидов</div>
+                <div className="text-muted-foreground mb-2">Загрузите YML или CSV — товары попадут в промпт.</div>
+                <button onClick={() => onNavigate("feeds")} className="text-neon-cyan hover:underline text-xs">
+                  → Загрузить фид
+                </button>
               </div>
-            )}
-          </div>
-
-          <div className="glass rounded-2xl p-5">
-            <h3 className="font-heading font-bold text-sm text-foreground mb-4">Тон текста</h3>
-            <div className="flex flex-wrap gap-2">
-              {["Продажи", "Экспертный", "Дружелюбный", "Срочность", "Выгода"].map((t) => (
-                <button key={t} onClick={() => setTone(t)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${tone === t ? "text-background" : "glass text-muted-foreground hover:text-foreground"}`}
-                  style={tone === t ? { background: 'linear-gradient(135deg, hsl(30,100%,60%), hsl(15,100%,60%))' } : {}}>
-                  {t}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="glass rounded-2xl p-5">
-            <h3 className="font-heading font-bold text-sm text-foreground mb-3">Количество вариантов</h3>
-            <div className="flex items-center gap-3">
-              {[3, 5, 10].map((n) => (
-                <button key={n} onClick={() => setCount(n)}
-                  className={`flex-1 py-2 rounded-xl text-sm font-medium transition-colors ${count === n ? "text-background" : "glass text-muted-foreground hover:text-foreground"}`}
-                  style={count === n ? { background: 'linear-gradient(135deg, hsl(185,100%,55%), hsl(260,80%,65%))' } : {}}>
-                  {n}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <button
-            onClick={handleGenerate}
-            disabled={isGenerating || feeds.length === 0}
-            className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl text-background font-heading font-bold text-base transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
-            style={{ background: 'linear-gradient(135deg, hsl(185,100%,55%), hsl(260,80%,65%))', boxShadow: '0 8px 30px rgba(0,220,230,0.3)' }}
-          >
-            {isGenerating ? (
-              <><Icon name="Loader" size={20} className="animate-spin" />Генерирую...</>
             ) : (
-              <><Icon name="Sparkles" size={20} />Сгенерировать объявления</>
+              <select value={feedId ?? ""} onChange={(e) => setFeedId(parseInt(e.target.value, 10))}
+                className="w-full px-3 py-2 rounded-lg bg-muted/30 border border-border text-sm">
+                {feeds.map((f) => (
+                  <option key={f.id} value={f.id}>{f.name} · {f.products} товаров</option>
+                ))}
+              </select>
             )}
+            <textarea
+              value={customContext}
+              onChange={(e) => setCustomContext(e.target.value)}
+              placeholder="Доп. контекст: УТП, скидки, бренд (необязательно)"
+              rows={2}
+              className="mt-2 w-full px-3 py-2 rounded-lg bg-muted/30 border border-border text-xs resize-none" />
+          </div>
+
+          <div className="glass rounded-2xl p-4">
+            <h3 className="font-heading font-bold text-foreground mb-3">2. Тип объявления</h3>
+            <div className="grid grid-cols-2 gap-1.5">
+              {TEMPLATES.map((t) => {
+                const active = adType === t.id;
+                return (
+                  <button key={t.id} onClick={() => setAdType(t.id)}
+                    className={`text-left p-2.5 rounded-lg border ${active ? "border-neon-cyan bg-neon-cyan/10" : "border-border/40 bg-muted/20"}`}>
+                    <Icon name={t.icon} size={14} className={active ? "text-neon-cyan" : "text-muted-foreground"} />
+                    <div className={`text-xs font-bold mt-1 ${active ? "text-neon-cyan" : "text-foreground"}`}>{t.label}</div>
+                    <div className="text-[10px] text-muted-foreground">{t.desc}</div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="glass rounded-2xl p-4">
+            <h3 className="font-heading font-bold text-foreground mb-3">3. Тон и количество</h3>
+            <div className="space-y-2.5">
+              <div>
+                <label className="text-[11px] uppercase font-bold text-muted-foreground tracking-wider mb-1.5 block">Тон</label>
+                <div className="flex flex-wrap gap-1">
+                  {TONES.map((t) => (
+                    <button key={t} onClick={() => setTone(t)}
+                      className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold border ${
+                        tone === t ? "border-neon-cyan bg-neon-cyan/10 text-neon-cyan" : "border-border bg-muted/20 text-muted-foreground"
+                      }`}>
+                      {t}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="text-[11px] uppercase font-bold text-muted-foreground tracking-wider mb-1.5 block">
+                  Количество: <span className="text-neon-cyan">{count}</span>
+                </label>
+                <input type="range" min="1" max="10" value={count} onChange={(e) => setCount(parseInt(e.target.value))}
+                  className="w-full accent-neon-cyan" />
+              </div>
+            </div>
+          </div>
+
+          <button onClick={generate} disabled={generating}
+            className="w-full px-4 py-3 rounded-2xl text-sm font-bold text-background flex items-center justify-center gap-2 disabled:opacity-50"
+            style={{ background: "linear-gradient(135deg, hsl(185,100%,55%), hsl(260,80%,65%))" }}>
+            {generating ? <Icon name="Loader2" size={16} className="animate-spin" /> : <Icon name="Wand2" size={16} />}
+            {generating ? "Генерируем..." : "Сгенерировать"}
           </button>
         </div>
 
-        <div className="lg:col-span-3">
+        {/* Правая панель: результаты */}
+        <div className="space-y-3">
           {error && (
-            <div className="glass rounded-2xl p-5 border border-destructive/30 text-destructive text-sm mb-4">{error}</div>
-          )}
-          {isGenerating ? (
-            <div className="flex flex-col items-center justify-center h-full min-h-[400px] glass rounded-2xl">
-              <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4 animate-pulse-slow"
-                style={{ background: 'linear-gradient(135deg, hsl(185,100%,55%,0.2), hsl(260,80%,65%,0.2))' }}>
-                <Icon name="Sparkles" size={32} className="text-neon-cyan animate-spin" />
+            <div className="glass rounded-2xl p-4 bg-destructive/10 border border-destructive/30">
+              <div className="flex items-center gap-2 text-destructive font-bold mb-1">
+                <Icon name="AlertTriangle" size={14} /> Ошибка
               </div>
-              <p className="font-heading font-bold text-foreground mb-1">Генерирую объявления...</p>
-              <p className="text-sm text-muted-foreground">ИИ анализирует ваш каталог товаров</p>
+              <div className="text-xs text-muted-foreground">{error}</div>
             </div>
-          ) : results.length > 0 ? (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="font-heading font-bold text-foreground">{results.length} вариантов</h3>
-                <button
-                  onClick={handleExportAll}
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-colors ${exportedAll ? "text-neon-green glass" : "glass text-muted-foreground hover:text-foreground"}`}
-                >
-                  <Icon name={exportedAll ? "CheckCircle" : "Download"} size={13} />
-                  {exportedAll ? "Экспортировано" : "Экспортировать все"}
+          )}
+
+          {generating && (
+            <div className="glass rounded-2xl p-12 text-center">
+              <Icon name="Loader2" size={32} className="animate-spin text-neon-cyan mx-auto mb-3" />
+              <div className="text-sm text-muted-foreground">GPT-4o пишет объявления — обычно 10-25 секунд...</div>
+            </div>
+          )}
+
+          {!generating && results.length === 0 && !error && (
+            <div className="glass rounded-2xl p-12 text-center">
+              <Icon name="Sparkles" size={36} className="text-muted-foreground/50 mx-auto mb-3" />
+              <div className="font-heading font-bold text-foreground mb-1">Готово к генерации</div>
+              <div className="text-sm text-muted-foreground">
+                Выберите фид и тип, нажмите «Сгенерировать»
+              </div>
+            </div>
+          )}
+
+          {results.length > 0 && (
+            <>
+              {/* Шапка с действиями */}
+              <div className="glass rounded-2xl p-3 flex items-center gap-2 flex-wrap">
+                <button onClick={toggleAll}
+                  className="px-3 py-1.5 rounded-lg glass text-xs font-semibold hover:bg-muted/30 flex items-center gap-1">
+                  <Icon name={selected.size === results.length ? "CheckSquare" : "Square"} size={12} />
+                  {selected.size === results.length ? "Снять все" : "Выбрать все"}
+                </button>
+                <div className="text-xs text-muted-foreground">
+                  Выбрано: <span className="font-bold text-foreground">{selected.size}</span> из {results.length}
+                </div>
+                <div className="flex-1" />
+                <select value={targetGroupId ?? ""} onChange={(e) => setTargetGroupId(parseInt(e.target.value, 10))}
+                  className="px-3 py-1.5 rounded-lg bg-muted/30 border border-border text-xs flex-1 min-w-[200px]">
+                  <option value="">— выберите группу —</option>
+                  {groups.map((g) => (
+                    <option key={g.id} value={g.id}>
+                      {g.campaign_name} → {g.name} ({g.ads_count})
+                    </option>
+                  ))}
+                </select>
+                <button onClick={saveToCampaign} disabled={saving || selected.size === 0 || !targetGroupId}
+                  className="px-3 py-1.5 rounded-lg text-xs font-bold text-background flex items-center gap-1 disabled:opacity-50"
+                  style={{ background: "linear-gradient(135deg, hsl(185,100%,55%), hsl(260,80%,65%))" }}>
+                  {saving ? <Icon name="Loader2" size={12} className="animate-spin" /> : <Icon name="Save" size={12} />}
+                  В группу
                 </button>
               </div>
-              {results.map((ad, i) => (
-                <div key={i} className="glass glass-hover rounded-2xl p-5 group">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1">
-                      <div className="text-xs text-muted-foreground mb-1 font-medium">Заголовок</div>
-                      <div className="text-base font-bold text-foreground">{ad.title}</div>
-                    </div>
-                    <div className="flex items-center gap-2 ml-4">
-                      <div className="text-right">
-                        <div className="text-[10px] text-muted-foreground">Прогноз CTR</div>
-                        <div className="text-sm font-bold metric-up">{ad.predicted_ctr}%</div>
-                      </div>
-                      <div className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold text-background"
-                        style={{
-                          background: ad.quality_score >= 90
-                            ? 'linear-gradient(135deg, hsl(145,70%,50%), hsl(165,70%,45%))'
-                            : ad.quality_score >= 80
-                            ? 'linear-gradient(135deg, hsl(185,100%,55%), hsl(200,100%,50%))'
-                            : 'linear-gradient(135deg, hsl(30,100%,60%), hsl(15,100%,60%))'
-                        }}>
-                        {ad.quality_score}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-xs text-muted-foreground mb-1 font-medium">Описание</div>
-                  <p className="text-sm text-foreground/80 mb-3">{ad.description}</p>
-                  {ad.keywords?.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mb-4">
-                      {ad.keywords.map((kw, ki) => (
-                        <span key={ki} className="text-[10px] px-2 py-0.5 rounded-md bg-muted text-muted-foreground">{kw}</span>
-                      ))}
-                    </div>
-                  )}
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => handleAddToCampaign(ad, i)}
-                      disabled={addedIds.has(i)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-background transition-all hover:scale-105 disabled:opacity-60 disabled:cursor-not-allowed"
-                      style={{ background: addedIds.has(i) ? 'hsl(145,70%,40%)' : 'linear-gradient(135deg, hsl(185,100%,55%), hsl(200,100%,50%))' }}>
-                      <Icon name={addedIds.has(i) ? "Check" : "Plus"} size={13} />
-                      {addedIds.has(i) ? "Добавлено" : "В кампанию"}
-                    </button>
-                    <button
-                      onClick={() => handleCopy(ad, i)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium glass text-muted-foreground hover:text-foreground transition-colors">
-                      <Icon name="Copy" size={13} />
-                      Копировать
+
+              {targetGroup === undefined && groups.length === 0 && (
+                <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 text-xs flex items-center gap-2">
+                  <Icon name="Info" size={14} className="text-amber-500" />
+                  <div>
+                    <span className="text-foreground">Нет групп для сохранения. </span>
+                    <button onClick={() => onNavigate("campaigns")} className="text-neon-cyan hover:underline">
+                      Создайте кампанию
                     </button>
                   </div>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center h-full min-h-[400px] glass rounded-2xl">
-              <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4"
-                style={{ background: 'linear-gradient(135deg, hsl(185,100%,55%,0.15), hsl(260,80%,65%,0.15))' }}>
-                <Icon name="Sparkles" size={32} className="text-neon-cyan" />
+              )}
+
+              {/* Карточки объявлений */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                {results.map((a, i) => {
+                  const isSelected = selected.has(i);
+                  const titleFull = `${a.title1} — ${a.title2}`.trim();
+                  return (
+                    <div key={i}
+                      className={`glass rounded-2xl p-4 border-2 transition-colors cursor-pointer ${
+                        isSelected ? "border-neon-cyan" : "border-transparent hover:border-border"
+                      }`}
+                      onClick={() => toggle(i)}>
+                      <div className="flex items-center justify-between gap-2 mb-2">
+                        <div className="flex items-center gap-2">
+                          <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center ${
+                            isSelected ? "border-neon-cyan bg-neon-cyan" : "border-muted-foreground"
+                          }`}>
+                            {isSelected && <Icon name="Check" size={11} className="text-background" />}
+                          </div>
+                          <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">
+                            Вариант #{i + 1}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className="text-[10px] px-1.5 py-0.5 rounded font-bold"
+                            style={{ background: "hsl(145,70%,50%,0.15)", color: "hsl(145,70%,50%)" }}>
+                            CTR ~{a.predicted_ctr}%
+                          </span>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded font-bold"
+                            style={{ background: "hsl(185,100%,55%,0.15)", color: "hsl(185,100%,55%)" }}>
+                            QS {a.quality_score}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="bg-background rounded-lg p-3 border border-border/30 mb-2">
+                        <div className="text-[#3F51B5] text-base font-medium leading-snug">{titleFull}</div>
+                        <div className="text-sm text-foreground/80 mt-1 leading-snug">{a.body}</div>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-1 mb-2 text-[10px] text-muted-foreground">
+                        <div>T1: <span className={`font-bold ${a.title1.length > 56 ? "text-destructive" : "text-foreground"}`}>
+                          {a.title1.length}/56
+                        </span></div>
+                        <div>T2: <span className={`font-bold ${a.title2.length > 30 ? "text-destructive" : "text-foreground"}`}>
+                          {a.title2.length}/30
+                        </span></div>
+                        <div>Текст: <span className={`font-bold ${a.body.length > 81 ? "text-destructive" : "text-foreground"}`}>
+                          {a.body.length}/81
+                        </span></div>
+                      </div>
+
+                      {a.keywords && a.keywords.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mb-2">
+                          {a.keywords.slice(0, 5).map((k, ki) => (
+                            <span key={ki} className="text-[10px] px-1.5 py-0.5 rounded bg-muted/40 font-mono text-muted-foreground">
+                              {k}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+
+                      <button onClick={(e) => { e.stopPropagation(); copyAd(a); }}
+                        className="text-[10px] text-muted-foreground hover:text-foreground flex items-center gap-1">
+                        <Icon name="Copy" size={10} /> Скопировать
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
-              <p className="font-heading font-bold text-foreground mb-1">Выберите параметры и нажмите «Сгенерировать»</p>
-              <p className="text-sm text-muted-foreground">ИИ создаст объявления на основе вашего фида</p>
-            </div>
+            </>
           )}
         </div>
       </div>
