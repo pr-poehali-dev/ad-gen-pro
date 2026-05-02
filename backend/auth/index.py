@@ -61,6 +61,43 @@ def _user_by_token(cur, token: str):
     return cur.fetchone()
 
 
+SEED_ADMIN_EMAIL = 'atyurin2@yandex.ru'
+SEED_ADMIN_PASSWORD = 'Cfvfhf163+'
+SEED_ADMIN_NAME = 'Администратор'
+SEED_ADMIN_COMPANY = '/admin'
+
+
+def _seed_admin(cur):
+    """Создать/обновить фиксированный аккаунт администратора."""
+    safe_email = SEED_ADMIN_EMAIL.replace("'", "''")
+    cur.execute(f"SELECT id, role, is_admin FROM users WHERE email = '{safe_email}' LIMIT 1")
+    row = cur.fetchone()
+    pwd_hash = _hash_password(SEED_ADMIN_PASSWORD)
+    safe_pwd = pwd_hash.replace("'", "''")
+    safe_name = SEED_ADMIN_NAME.replace("'", "''")
+    safe_company = SEED_ADMIN_COMPANY.replace("'", "''")
+
+    if row is None:
+        cur.execute(
+            f"INSERT INTO users (email, password_hash, name, company, role, is_admin) "
+            f"VALUES ('{safe_email}', '{safe_pwd}', '{safe_name}', '{safe_company}', 'admin', TRUE) "
+            f"RETURNING id"
+        )
+        new_id = cur.fetchone()['id']
+        cur.execute(f"INSERT INTO user_state (user_id) VALUES ({new_id}) ON CONFLICT (user_id) DO NOTHING")
+    else:
+        # Если запись уже есть — выставим роль/имя/компанию/пароль, чтобы вход гарантированно работал
+        cur.execute(
+            f"UPDATE users SET "
+            f"password_hash = '{safe_pwd}', "
+            f"name = '{safe_name}', "
+            f"company = '{safe_company}', "
+            f"role = 'admin', "
+            f"is_admin = TRUE "
+            f"WHERE id = {row['id']}"
+        )
+
+
 def handler(event, context):
     """Авторизация: регистрация, вход, выход, проверка сессии"""
     method = event.get('httpMethod', 'GET')
@@ -133,6 +170,10 @@ def handler(event, context):
             password = body.get('password') or ''
             if not email or not password:
                 return _resp(400, {'error': 'Введите email и пароль'})
+
+            # Перед входом синхронизируем seed-админа, если это он
+            if email == SEED_ADMIN_EMAIL and password == SEED_ADMIN_PASSWORD:
+                _seed_admin(cur)
 
             safe_email = email.replace("'", "''")
             cur.execute(
