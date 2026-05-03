@@ -213,16 +213,24 @@ def handler(event, context):
             'quantity': 1
         }]
 
-    # Get credentials
-    shop_id = os.environ.get('YOOKASSA_SHOP_ID', '')
-    secret_key = os.environ.get('YOOKASSA_SECRET_KEY', '')
+    # Get credentials (strip whitespace/newlines that могут случайно попасть при копировании)
+    shop_id = os.environ.get('YOOKASSA_SHOP_ID', '').strip()
+    secret_key = os.environ.get('YOOKASSA_SECRET_KEY', '').strip()
 
     if not shop_id or not secret_key:
         return {
             'statusCode': 500,
             'headers': HEADERS,
-            'body': json.dumps({'error': 'YooKassa credentials not configured'})
+            'body': json.dumps({'error': 'Платёжная система не настроена. Свяжитесь с поддержкой.'})
         }
+
+    # Sanity-check: shop_id должен быть числовым, secret_key начинается с live_ или test_
+    if not shop_id.isdigit():
+        import sys
+        print(f"[YOOKASSA CONFIG] shop_id is not numeric: '{shop_id[:8]}...'", file=sys.stderr, flush=True)
+    if not (secret_key.startswith('live_') or secret_key.startswith('test_')):
+        import sys
+        print(f"[YOOKASSA CONFIG] secret_key has invalid prefix: '{secret_key[:8]}...'", file=sys.stderr, flush=True)
 
     S = get_schema()
     conn = get_connection()
@@ -319,10 +327,25 @@ def handler(event, context):
             pass
         error_body = e.read().decode() if e.fp else str(e)
         print(f"[YOOKASSA HTTP ERROR] {e.code} {error_body}", file=sys.stderr, flush=True)
+        # Парсим ошибку ЮKassa, чтобы показать пользователю понятный текст
+        user_msg = 'Не удалось создать платёж. Попробуйте позже или свяжитесь с поддержкой.'
+        admin_hint = ''
+        try:
+            err_data = json.loads(error_body)
+            code = err_data.get('code', '')
+            if e.code == 401 or code == 'invalid_credentials':
+                user_msg = 'Платёжная система временно недоступна. Мы уже работаем над этим — попробуйте через несколько минут или напишите в поддержку.'
+                admin_hint = 'invalid_credentials: проверьте YOOKASSA_SHOP_ID и YOOKASSA_SECRET_KEY в секретах'
+            elif code == 'invalid_request':
+                user_msg = 'Не удалось создать платёж: проверьте корректность данных (email, сумма).'
+            elif code == 'forbidden':
+                user_msg = 'Платёжный метод временно недоступен. Свяжитесь с поддержкой.'
+        except Exception:
+            pass
         return {
-            'statusCode': 500,
+            'statusCode': 502 if e.code in (401, 403) else 500,
             'headers': HEADERS,
-            'body': json.dumps({'error': f'YooKassa API error: {error_body}'})
+            'body': json.dumps({'error': user_msg, 'admin_hint': admin_hint})
         }
     except Exception as e:
         import traceback, sys
