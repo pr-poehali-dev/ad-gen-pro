@@ -109,7 +109,7 @@ export default function App() {
 function MainApp() {
   useAuth();
   const [authOpen, setAuthOpen] = useState(false);
-  const [activePage, setActivePageState] = useState<Page>(getPageFromPath);
+  const [activePage, setActivePageState] = useState<Page>(() => getPageFromPath());
 
   const setActivePage = (page: Page) => {
     setActivePageState(page);
@@ -120,6 +120,7 @@ function MainApp() {
   };
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
     const onPop = () => setActivePageState(getPageFromPath());
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
@@ -145,7 +146,9 @@ function MainApp() {
   const toggleSidebarCollapse = () => {
     setSidebarCollapsed(prev => {
       const next = !prev;
-      localStorage.setItem("adflow_sidebar_collapsed", next ? "1" : "0");
+      if (typeof window !== "undefined") {
+        localStorage.setItem("adflow_sidebar_collapsed", next ? "1" : "0");
+      }
       return next;
     });
   };
