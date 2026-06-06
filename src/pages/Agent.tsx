@@ -3,6 +3,7 @@ import { Page } from "@/App";
 import AgentHero from "./agent/AgentHero";
 import AgentSections from "./agent/AgentSections";
 import AgentCalculator from "./agent/AgentCalculator";
+import CourseBanner from "./agent/CourseBanner";
 import AgentFooter from "./agent/AgentFooter";
 
 interface AgentProps {
@@ -32,6 +33,7 @@ export default function Agent({ onNavigate }: AgentProps) {
 
       <AgentHero onNavigate={onNavigate} />
       <AgentSections onNavigate={onNavigate} />
+      <CourseBanner />
       <AgentCalculator />
       <AgentFooter onNavigate={onNavigate} showStickyCTA={showStickyCTA} />
     </div>
